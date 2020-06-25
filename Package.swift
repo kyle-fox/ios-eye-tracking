@@ -4,8 +4,8 @@
 import PackageDescription
 
 let package = Package(
-    name: "ios-eye-tracking",
-    platforms: [.iOS(.v11)],
+    name: "EyeTracking",
+    platforms: [.iOS(.v13)],
     products: [.library(name: "ios-eye-tracking", targets: ["ios-eye-tracking"])],
     targets: [
         .target(name: "ios-eye-tracking", dependencies: [], exclude: ["ios-eye-tracking-example"]),

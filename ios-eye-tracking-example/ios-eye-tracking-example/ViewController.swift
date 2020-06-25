@@ -6,15 +6,16 @@
 //  Copyright © 2020 Kyle Fox. All rights reserved.
 //
 
+import ios_eye_tracking
 import UIKit
 
 class ViewController: UIViewController {
 
+    let eyeTracking = EyeTracking()
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
+        eyeTracking.startSession()
     }
-
-
 }
 
