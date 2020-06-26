@@ -15,7 +15,8 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        eyeTracking.startSession()
+        eyeTracking.startSession(with: self)
+        eyeTracking.showPointer()
     }
 }
 
