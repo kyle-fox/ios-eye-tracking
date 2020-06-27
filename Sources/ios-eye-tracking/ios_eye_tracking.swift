@@ -6,7 +6,10 @@ public class EyeTracking: NSObject {
 
     // MARK: - Public Properties
 
+    /// Array of sessions completed during the app's runtime.
     public var sessions = [Session]()
+
+    /// The currently running session. If this is `nil`, then no session is in progress.
     public var currentSession: Session?
 
     // MARK: - Internal Properties
@@ -16,14 +19,15 @@ public class EyeTracking: NSObject {
 
     // MARK: - Live Pointer
 
-    /// These values are used by the pointer for smooth display onscreen.
-    var smoothGravityX = LowPassFilterSignal(value: 0, filterFactor: 0.85)
-    var smoothGravityY = LowPassFilterSignal(value: 0, filterFactor: 0.85)
+    /// These values are used by the live pointer for smooth display onscreen.
+    var smoothX = LowPassFilter(value: 0, filterValue: 0.85)
+    var smoothY = LowPassFilter(value: 0, filterValue: 0.85)
 
     /// A small, round dot for viewing live gaze point onscreen.
     ///
     /// To display, provide a **fullscreen** `viewController` in `startSession` and call `showPointer` any time after the session starts.
     /// Default size is 30x30, and color is blue. This `UIView` can be customized at any time.
+    ///
     public lazy var pointer: UIView = {
         let view = UIView(frame: CGRect(x: 0, y: 0, width: 30, height: 30))
         view.layer.cornerRadius = view.frame.size.width / 2
@@ -31,12 +35,15 @@ public class EyeTracking: NSObject {
         view.backgroundColor = .blue
         return view
     }()
+}
 
-    // MARK: - Session Management
+// MARK: - Session Management
 
+extension EyeTracking {
     /// Start an eye tracking Session.
     ///
-    /// - parameter viewController: Optionally provide a view controller over which you wish to display onscreen diagnostics, like when using `showPointer`.
+    /// - parameter viewController: Optionally provide a view controller over which you
+    /// wish to display onscreen diagnostics, like when using `showPointer`.
     ///
     public func startSession(with viewController: UIViewController? = nil) {
         guard ARFaceTrackingConfiguration.isSupported else {
@@ -44,35 +51,80 @@ public class EyeTracking: NSObject {
             return
         }
         guard currentSession == nil else {
-            assertionFailure("⛔️ Session already in progress. Call endSession() before calling this function again. ⛔️")
+            assertionFailure("Session already in progress. Must call endSession() first.")
             return
         }
 
+        // Set up local properties.
         currentSession = Session()
+        self.viewController = viewController
 
+        // Configure and start the ARSession to begin face tracking.
         let configuration = ARFaceTrackingConfiguration()
         configuration.worldAlignment = .gravity
 
         arSession.delegate = self
         arSession.run(configuration, options: [.resetTracking, .removeExistingAnchors])
-
-        self.viewController = viewController
     }
 
     /// End an eye tracking Session.
     ///
     /// When this function is called, the Session is saved, ready for exporting in JSON.
+    ///
     public func endSession() {
         arSession.pause()
         currentSession?.endTime = Date().timeIntervalSince1970
 
-        guard let currentSession = currentSession else { return }
+        guard let currentSession = currentSession else {
+            assertionFailure("endSession() called when no session is in progress.")
+            return
+        }
+
+        // Save session and reset local state.
         sessions.append(currentSession)
         self.currentSession = nil
+        viewController = nil
     }
+}
 
-    // MARK: - Live Pointer Management
+// MARK: - ARSessionDelegate
 
+extension EyeTracking: ARSessionDelegate {
+    public func session(_ session: ARSession, didUpdate frame: ARFrame) {
+        guard let anchor = frame.anchors.first as? ARFaceAnchor else { return }
+        guard let orientation = UIApplication.shared.windows.first?.windowScene?.interfaceOrientation else { return }
+
+        // Convert to world space.
+        let point = anchor.transform * SIMD4<Float>(anchor.lookAtPoint, 1)
+
+        // Project into screen coordinates.
+        let screenPoint = frame.camera.projectPoint(
+            SIMD3<Float>(x: point.x, y: point.y, z: point.z),
+            orientation: orientation,
+            viewportSize: UIScreen.main.bounds.size
+        )
+
+        // Update Session Data
+
+        currentSession?.scanPath.append(Gaze(x: screenPoint.x, y: screenPoint.y))
+
+        if let eyeBlinkLeft = anchor.blendShapes[.eyeBlinkLeft]?.doubleValue {
+            currentSession?.blinks.append(Blink(eye: .left, value: eyeBlinkLeft))
+        }
+
+        if let eyeBlinkRight = anchor.blendShapes[.eyeBlinkRight]?.doubleValue {
+            currentSession?.blinks.append(Blink(eye: .right, value: eyeBlinkRight))
+        }
+
+        // Update UI
+
+        updatePointer(with: screenPoint)
+    }
+}
+
+// MARK: - Live Pointer Management
+
+extension EyeTracking {
     /// Call this function to display a live view of the user's gaze point.
     public func showPointer() {
         viewController?.view.addSubview(pointer)
@@ -83,61 +135,19 @@ public class EyeTracking: NSObject {
     public func hidePointer() {
         pointer.removeFromSuperview()
     }
-}
 
-// MARK: - ARSessionDelegate
-
-extension EyeTracking: ARSessionDelegate {
-    public func session(_ session: ARSession, didUpdate frame: ARFrame) {
-        guard let anchor = frame.anchors.first as? ARFaceAnchor else { return }
-
-        // Convert to world space.
-        let point = anchor.transform * SIMD4<Float>(anchor.lookAtPoint, 1)
-
-        // Project into screen coordinates.
-        let screenPoint = frame.camera.projectPoint(
-            SIMD3<Float>(x: point.x, y: point.y, z: point.z),
-            orientation: UIApplication.shared.windows.first!.windowScene!.interfaceOrientation,
-            viewportSize: UIScreen.main.bounds.size
-        )
-
+    func updatePointer(with point: CGPoint) {
         // TODO: The calculation changes based on screen orientation.
-        smoothGravityX.update(newValue: (UIScreen.main.bounds.size.width / 2) - screenPoint.x)
-        smoothGravityY.update(newValue: (UIScreen.main.bounds.size.height * 1.25) - screenPoint.y)
-        currentSession?.scanPath.append(Gaze(x: screenPoint.x, y: screenPoint.y))
+        smoothX.update(with: (UIScreen.main.bounds.size.width / 2) - point.x)
+        smoothY.update(with: (UIScreen.main.bounds.size.height * 1.25) - point.y)
 
-        print("⛔️ \(smoothGravityX), \(smoothGravityY)")
+        print("⛔️ \(smoothX), \(smoothY)")
 
         pointer.frame = CGRect(
-            x: smoothGravityX.value,
-            y: smoothGravityY.value,
+            x: smoothX.value,
+            y: smoothY.value,
             width: pointer.frame.width,
             height: pointer.frame.height
         )
-    }
-}
-
-public struct Session: Codable {
-    public var beginTime = Date().timeIntervalSince1970
-    public var endTime: TimeInterval?
-    public var scanPath = [Gaze]()
-}
-
-public struct Gaze: Codable {
-    public var timestamp = Date().timeIntervalSince1970
-    public let x: CGFloat
-    public let y: CGFloat
-}
-
-struct LowPassFilterSignal {
-    /// Current signal value
-    var value: CGFloat
-
-    /// A scaling factor in the range 0.0..<1.0 that determines how resistant the value is to change
-    let filterFactor: CGFloat
-
-    /// Update the value, using filterFactor to attenuate changes
-    mutating func update(newValue: CGFloat) {
-        value = filterFactor * value + (1.0 - filterFactor) * newValue
     }
 }
