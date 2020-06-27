@@ -28,7 +28,8 @@ public class EyeTracking: NSObject {
 
     /// A small, round dot for viewing live gaze point onscreen.
     ///
-    /// To display, provide a **fullscreen** `viewController` in `startSession` and call `showPointer` any time after the session starts.
+    /// To display, provide a **fullscreen** `viewController` in `startSession` and
+    /// call `showPointer` any time after the session starts.
     /// Default size is 30x30, and color is blue. This `UIView` can be customized at any time.
     ///
     public lazy var pointer: UIView = {
@@ -110,14 +111,20 @@ extension EyeTracking: ARSessionDelegate {
         // Update Session Data
         let frameTimestampUnix = timeOffset + frame.timestamp
 
-        currentSession?.scanPath.append(Gaze(timestamp: frameTimestampUnix, x: screenPoint.x, y: screenPoint.y))
+        currentSession?.scanPath.append(
+            Gaze(timestamp: frameTimestampUnix, x: screenPoint.x, y: screenPoint.y)
+        )
 
         if let eyeBlinkLeft = anchor.blendShapes[.eyeBlinkLeft]?.doubleValue {
-            currentSession?.blinks.append(Blink(timestamp: frameTimestampUnix, eye: .left, value: eyeBlinkLeft))
+            currentSession?.blinks.append(
+                Blink(timestamp: frameTimestampUnix, eye: .left, value: eyeBlinkLeft)
+            )
         }
 
         if let eyeBlinkRight = anchor.blendShapes[.eyeBlinkRight]?.doubleValue {
-            currentSession?.blinks.append(Blink(timestamp: frameTimestampUnix, eye: .right, value: eyeBlinkRight))
+            currentSession?.blinks.append(
+                Blink(timestamp: frameTimestampUnix, eye: .right, value: eyeBlinkRight)
+            )
         }
 
         // Update UI
