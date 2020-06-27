@@ -17,6 +17,9 @@ public class EyeTracking: NSObject {
     let arSession = ARSession()
     weak var viewController: UIViewController?
 
+    /// ARFrame's timestamp value is relative to `systemUptime`. Use this offset to convert to Unix time.
+    let timeOffset: TimeInterval = Date().timeIntervalSince1970 - ProcessInfo.processInfo.systemUptime
+
     // MARK: - Live Pointer
 
     /// These values are used by the live pointer for smooth display onscreen.
@@ -56,12 +59,12 @@ extension EyeTracking {
         }
 
         // Set up local properties.
-        currentSession = Session()
+        currentSession = Session(id: UUID())
         self.viewController = viewController
 
         // Configure and start the ARSession to begin face tracking.
         let configuration = ARFaceTrackingConfiguration()
-        configuration.worldAlignment = .gravity
+        configuration.worldAlignment = .camera
 
         arSession.delegate = self
         arSession.run(configuration, options: [.resetTracking, .removeExistingAnchors])
@@ -94,10 +97,10 @@ extension EyeTracking: ARSessionDelegate {
         guard let anchor = frame.anchors.first as? ARFaceAnchor else { return }
         guard let orientation = UIApplication.shared.windows.first?.windowScene?.interfaceOrientation else { return }
 
-        // Convert to world space.
+        // Convert lookAtPoint vector to world coordinate space, from face coordinate space.
         let point = anchor.transform * SIMD4<Float>(anchor.lookAtPoint, 1)
 
-        // Project into screen coordinates.
+        // Project lookAtPoint into screen coordinates.
         let screenPoint = frame.camera.projectPoint(
             SIMD3<Float>(x: point.x, y: point.y, z: point.z),
             orientation: orientation,
@@ -105,15 +108,16 @@ extension EyeTracking: ARSessionDelegate {
         )
 
         // Update Session Data
+        let frameTimestampUnix = timeOffset + frame.timestamp
 
-        currentSession?.scanPath.append(Gaze(x: screenPoint.x, y: screenPoint.y))
+        currentSession?.scanPath.append(Gaze(timestamp: frameTimestampUnix, x: screenPoint.x, y: screenPoint.y))
 
         if let eyeBlinkLeft = anchor.blendShapes[.eyeBlinkLeft]?.doubleValue {
-            currentSession?.blinks.append(Blink(eye: .left, value: eyeBlinkLeft))
+            currentSession?.blinks.append(Blink(timestamp: frameTimestampUnix, eye: .left, value: eyeBlinkLeft))
         }
 
         if let eyeBlinkRight = anchor.blendShapes[.eyeBlinkRight]?.doubleValue {
-            currentSession?.blinks.append(Blink(eye: .right, value: eyeBlinkRight))
+            currentSession?.blinks.append(Blink(timestamp: frameTimestampUnix, eye: .right, value: eyeBlinkRight))
         }
 
         // Update UI
@@ -127,8 +131,12 @@ extension EyeTracking: ARSessionDelegate {
 extension EyeTracking {
     /// Call this function to display a live view of the user's gaze point.
     public func showPointer() {
-        viewController?.view.addSubview(pointer)
-        viewController?.view.bringSubviewToFront(pointer)
+        guard let viewController = viewController else {
+            assertionFailure("Must start a session and provide a viewController.")
+            return
+        }
+        viewController.view.addSubview(pointer)
+        viewController.view.bringSubviewToFront(pointer)
     }
 
     /// Call this function to hide the live view of the user's gaze point.
@@ -137,11 +145,13 @@ extension EyeTracking {
     }
 
     func updatePointer(with point: CGPoint) {
+        guard let size = viewController?.view.bounds.size else { return }
         // TODO: The calculation changes based on screen orientation.
-        smoothX.update(with: (UIScreen.main.bounds.size.width / 2) - point.x)
-        smoothY.update(with: (UIScreen.main.bounds.size.height * 1.25) - point.y)
+        smoothX.update(with: (size.width / 2) - point.x)
+        smoothY.update(with: (size.height * 1.25) - point.y)
 
-        print("⛔️ \(smoothX), \(smoothY)")
+        print("⛔️ \(point.x), \(point.y)")
+        print("⛔️ \(smoothX.value), \(smoothY.value)")
 
         pointer.frame = CGRect(
             x: smoothX.value,

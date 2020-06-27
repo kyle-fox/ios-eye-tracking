@@ -6,7 +6,7 @@ public struct Blink: Codable {
         case right
     }
 
-    public var timestamp = Date().timeIntervalSince1970
+    public let timestamp: TimeInterval
     public let eye: Eye
     public let value: Double
 }
