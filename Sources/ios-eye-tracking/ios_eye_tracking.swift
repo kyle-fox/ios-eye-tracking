@@ -127,6 +127,8 @@ extension EyeTracking: ARSessionDelegate {
             )
         }
 
+        print("👀 Left: \(anchor.blendShapes[.eyeBlinkLeft] ?? -1), Right: \(anchor.blendShapes[.eyeBlinkRight] ?? -1)")
+
         // Update UI
 
         updatePointer(with: screenPoint)
@@ -157,8 +159,8 @@ extension EyeTracking {
         smoothX.update(with: (size.width / 2) - point.x)
         smoothY.update(with: (size.height * 1.25) - point.y)
 
-        print("⛔️ \(point.x), \(point.y)")
-        print("⛔️ \(smoothX.value), \(smoothY.value)")
+//        print("⛔️ \(point.x), \(point.y)")
+        print("🔵 \(smoothX.value), \(smoothY.value)")
 
         pointer.frame = CGRect(
             x: smoothX.value,
