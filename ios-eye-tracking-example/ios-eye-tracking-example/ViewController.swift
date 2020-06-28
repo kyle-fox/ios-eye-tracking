@@ -6,7 +6,7 @@
 //  Copyright © 2020 Kyle Fox. All rights reserved.
 //
 
-import ios_eye_tracking
+import EyeTracking
 import UIKit
 
 class ViewController: UIViewController {

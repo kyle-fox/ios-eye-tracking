@@ -13,7 +13,7 @@
 		983C7064249E81DE00FA5CC8 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 983C7062249E81DE00FA5CC8 /* Main.storyboard */; };
 		983C7066249E81DF00FA5CC8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 983C7065249E81DF00FA5CC8 /* Assets.xcassets */; };
 		983C7069249E81DF00FA5CC8 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 983C7067249E81DF00FA5CC8 /* LaunchScreen.storyboard */; };
-		E890B2A2249EA8BF00C8B419 /* ios-eye-tracking in Frameworks */ = {isa = PBXBuildFile; productRef = E890B2A1249EA8BF00C8B419 /* ios-eye-tracking */; };
+		E85FC2A024A9349C00FE5D63 /* EyeTracking in Frameworks */ = {isa = PBXBuildFile; productRef = E85FC29F24A9349C00FE5D63 /* EyeTracking */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,7 +33,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E890B2A2249EA8BF00C8B419 /* ios-eye-tracking in Frameworks */,
+				E85FC2A024A9349C00FE5D63 /* EyeTracking in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -96,7 +96,7 @@
 			);
 			name = "ios-eye-tracking-example";
 			packageProductDependencies = (
-				E890B2A1249EA8BF00C8B419 /* ios-eye-tracking */,
+				E85FC29F24A9349C00FE5D63 /* EyeTracking */,
 			);
 			productName = "ios-eye-tracking-example";
 			productReference = 983C7059249E81DE00FA5CC8 /* ios-eye-tracking-example.app */;
@@ -109,7 +109,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1130;
-				LastUpgradeCheck = 1130;
+				LastUpgradeCheck = 1200;
 				ORGANIZATIONNAME = "Kyle Fox";
 				TargetAttributes = {
 					983C7058249E81DE00FA5CC8 = {
@@ -207,6 +207,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -267,6 +268,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -355,9 +357,9 @@
 /* End XCConfigurationList section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		E890B2A1249EA8BF00C8B419 /* ios-eye-tracking */ = {
+		E85FC29F24A9349C00FE5D63 /* EyeTracking */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = "ios-eye-tracking";
+			productName = EyeTracking;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

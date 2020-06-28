@@ -6,10 +6,10 @@ import PackageDescription
 let package = Package(
     name: "EyeTracking",
     platforms: [.iOS(.v13)],
-    products: [.library(name: "ios-eye-tracking", targets: ["ios-eye-tracking"])],
+    products: [.library(name: "EyeTracking", targets: ["EyeTracking"])],
     targets: [
-        .target(name: "ios-eye-tracking", dependencies: [], exclude: ["ios-eye-tracking-example"]),
-        .testTarget(name: "ios-eye-trackingTests",dependencies: ["ios-eye-tracking"], exclude: ["ios-eye-tracking-example"]),
+        .target(name: "EyeTracking", dependencies: []),
+        .testTarget(name: "ios-eye-trackingTests",dependencies: ["EyeTracking"]),
     ],
     swiftLanguageVersions: [.v5]
 )
