@@ -6,6 +6,8 @@ public class EyeTracking: NSObject {
 
     // MARK: - Public Properties
 
+    var configuration: Configuration
+
     /// Array of sessions completed during the app's runtime.
     public var sessions = [Session]()
 
@@ -39,6 +41,10 @@ public class EyeTracking: NSObject {
         view.backgroundColor = .blue
         return view
     }()
+
+    public required init(configuration: Configuration? = nil) {
+        self.configuration = configuration ?? Configuration(blendShapes: [])
+    }
 }
 
 // MARK: - Session Management
@@ -139,19 +145,24 @@ extension EyeTracking: ARSessionDelegate {
             Gaze(timestamp: frameTimestampUnix, x: screenPoint.x, y: screenPoint.y)
         )
 
-        if let eyeBlinkLeft = anchor.blendShapes[.eyeBlinkLeft]?.doubleValue {
-            currentSession?.blinks.append(
-                Blink(timestamp: frameTimestampUnix, eye: .left, value: eyeBlinkLeft)
-            )
-        }
+        // Save any configured blendShapeLocation values
+        for blendShape in configuration.blendShapes {
+            guard let value = anchor.blendShapes[blendShape]?.doubleValue else { continue }
 
-        if let eyeBlinkRight = anchor.blendShapes[.eyeBlinkRight]?.doubleValue {
-            currentSession?.blinks.append(
-                Blink(timestamp: frameTimestampUnix, eye: .right, value: eyeBlinkRight)
-            )
-        }
+            // TODO: Clean up
+            if currentSession?.blendShapes[blendShape.rawValue] != nil {
+                currentSession?.blendShapes[blendShape.rawValue]?.append(
+                    BlendShape(timestamp: frameTimestampUnix, blendShapeLocation: blendShape, value: value)
+                )
+            } else {
+                currentSession?.blendShapes.updateValue(
+                    [BlendShape(timestamp: frameTimestampUnix, blendShapeLocation: blendShape, value: value)],
+                    forKey: blendShape.rawValue
+                )
+            }
 
-//        print("👀 Left: \(anchor.blendShapes[.eyeBlinkLeft] ?? -1), Right: \(anchor.blendShapes[.eyeBlinkRight] ?? -1)")
+            print("⛔️ BlendShapeLocation: \(blendShape.rawValue) -- Value: \(value)")
+        }
 
         // Update UI
 

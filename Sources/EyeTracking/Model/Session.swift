@@ -6,5 +6,5 @@ public struct Session: Codable {
     public var endTime: TimeInterval?
 
     public var scanPath = [Gaze]()
-    public var blinks = [Blink]()
+    public var blendShapes = [String: [BlendShape]]()
 }

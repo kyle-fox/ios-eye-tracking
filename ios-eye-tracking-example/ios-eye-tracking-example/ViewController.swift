@@ -11,7 +11,7 @@ import UIKit
 
 class ViewController: UIViewController {
 
-    let eyeTracking = EyeTracking()
+    let eyeTracking = EyeTracking(configuration: Configuration(blendShapes: [.eyeBlinkLeft, .eyeBlinkRight]))
 
     override func viewDidLoad() {
         super.viewDidLoad()
