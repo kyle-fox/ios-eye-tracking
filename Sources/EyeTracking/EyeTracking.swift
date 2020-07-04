@@ -91,6 +91,30 @@ extension EyeTracking {
     }
 }
 
+// MARK: - Exporting Data
+
+extension EyeTracking {
+    /// TODO: Documentation
+    public typealias JSON = [String: Any]
+
+    /// TODO: Documentation
+    public func exportJSON() -> JSON {
+        var jsonSessions = JSON()
+
+        for session in sessions {
+            do {
+                let data = try JSONEncoder().encode(session)
+                let json = try JSONSerialization.jsonObject(with: data, options: .allowFragments)
+                jsonSessions[session.id.uuidString] = json
+            } catch {
+                assertionFailure("Encoding Session into JSON failed with error: \(error.localizedDescription)")
+            }
+        }
+
+        return jsonSessions
+    }
+}
+
 // MARK: - ARSessionDelegate
 
 extension EyeTracking: ARSessionDelegate {

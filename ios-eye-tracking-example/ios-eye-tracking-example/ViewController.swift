@@ -17,6 +17,12 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         eyeTracking.startSession(with: self)
         eyeTracking.showPointer()
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
+            self.eyeTracking.endSession()
+            let json = self.eyeTracking.exportJSON()
+            print("⛔️ \(json)")
+        }
     }
 }
 
