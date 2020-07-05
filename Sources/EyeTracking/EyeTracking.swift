@@ -14,8 +14,13 @@ public class EyeTracking: NSObject {
 
     // MARK: - Internal Properties
 
+    /// TODO: Documentation
     let arSession = ARSession()
+
+    /// TODO: Documentation
     var configuration: Configuration
+
+    /// TODO: Documentation
     weak var viewController: UIViewController?
 
     /// ARFrame's timestamp value is relative to `systemUptime`. Use this offset to convert to Unix time.
@@ -41,6 +46,7 @@ public class EyeTracking: NSObject {
         return view
     }()
 
+    /// TODO: Documentation
     public required init(configuration: Configuration) {
         self.configuration = configuration
     }
@@ -120,9 +126,51 @@ extension EyeTracking {
     }
 }
 
+// MARK: - Importing Data
+
+extension EyeTracking {
+    /// TODO: Documentation
+    public func importSession(from data: Data) {
+        do {
+            let session = try JSONDecoder().decode(Session.self, from: data)
+            sessions.append(session)
+        } catch {
+            print("⛔️ Error decoding Session from Data: \(error.localizedDescription)")
+        }
+    }
+
+    /// TODO: Documentation
+    public func importSession(from string: String) {
+        do {
+            guard let data = string.data(using: .utf8) else {
+                print("⛔️ Error converting Session string to Data object.")
+                return
+            }
+            let session = try JSONDecoder().decode(Session.self, from: data)
+            sessions.append(session)
+        } catch {
+            print("⛔️ Error decoding Session from Data: \(error.localizedDescription)")
+        }
+    }
+
+    /// TODO: Documentation
+    public func importSessions(from json: JSON) {
+        for (_, value) in json {
+            do {
+                let data = try JSONSerialization.data(withJSONObject: value, options: .prettyPrinted)
+                let session = try  JSONDecoder().decode(Session.self, from: data)
+                sessions.append(session)
+            } catch {
+                print("⛔️ Error decoding Sessions from JSON: \(error.localizedDescription)")
+            }
+        }
+    }
+}
+
 // MARK: - ARSessionDelegate
 
 extension EyeTracking: ARSessionDelegate {
+    /// TODO: Documentation
     public func session(_ session: ARSession, didUpdate frame: ARFrame) {
         guard let anchor = frame.anchors.first as? ARFaceAnchor else { return }
         guard let orientation = UIApplication.shared.windows.first?.windowScene?.interfaceOrientation else { return }
@@ -189,6 +237,7 @@ extension EyeTracking: ARSessionDelegate {
 // MARK: - ARCamera TrackingState
 
 extension EyeTracking {
+    /// TODO: Documentation
     func trackingStateString(for frame: ARFrame) -> String? {
         switch frame.camera.trackingState {
         case .notAvailable:
@@ -236,6 +285,7 @@ extension EyeTracking {
         pointer.removeFromSuperview()
     }
 
+    /// TODO: Documentation
     func updatePointer(with point: CGPoint) {
         guard let size = viewController?.view.bounds.size else { return }
         // TODO: The calculation changes based on screen orientation.
