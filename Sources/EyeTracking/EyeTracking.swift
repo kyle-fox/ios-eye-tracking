@@ -14,13 +14,13 @@ public class EyeTracking: NSObject {
 
     // MARK: - Internal Properties
 
-    /// TODO: Documentation
+    // TODO: Documentation
     let arSession = ARSession()
 
-    /// TODO: Documentation
+    // TODO: Documentation
     var configuration: Configuration
 
-    /// TODO: Documentation
+    // TODO: Documentation
     weak var viewController: UIViewController?
 
     /// ARFrame's timestamp value is relative to `systemUptime`. Use this offset to convert to Unix time.
@@ -46,7 +46,7 @@ public class EyeTracking: NSObject {
         return view
     }()
 
-    /// TODO: Documentation
+    // TODO: Documentation
     public required init(configuration: Configuration) {
         self.configuration = configuration
     }
@@ -102,75 +102,10 @@ extension EyeTracking {
     }
 }
 
-// MARK: - Exporting Data
-
-extension EyeTracking {
-    /// TODO: Documentation
-    public typealias JSON = [String: Any]
-
-    /// TODO: Documentation
-    public func exportJSON() -> JSON {
-        var jsonSessions = JSON()
-
-        for session in sessions {
-            do {
-                let data = try JSONEncoder().encode(session)
-                let json = try JSONSerialization.jsonObject(with: data, options: .allowFragments)
-                jsonSessions[session.id.uuidString] = json
-            } catch {
-                assertionFailure("Encoding Session into JSON failed with error: \(error.localizedDescription)")
-            }
-        }
-
-        return jsonSessions
-    }
-}
-
-// MARK: - Importing Data
-
-extension EyeTracking {
-    /// TODO: Documentation
-    public func importSession(from data: Data) {
-        do {
-            let session = try JSONDecoder().decode(Session.self, from: data)
-            sessions.append(session)
-        } catch {
-            print("⛔️ Error decoding Session from Data: \(error.localizedDescription)")
-        }
-    }
-
-    /// TODO: Documentation
-    public func importSession(from string: String) {
-        do {
-            guard let data = string.data(using: .utf8) else {
-                print("⛔️ Error converting Session string to Data object.")
-                return
-            }
-            let session = try JSONDecoder().decode(Session.self, from: data)
-            sessions.append(session)
-        } catch {
-            print("⛔️ Error decoding Session from Data: \(error.localizedDescription)")
-        }
-    }
-
-    /// TODO: Documentation
-    public func importSessions(from json: JSON) {
-        for (_, value) in json {
-            do {
-                let data = try JSONSerialization.data(withJSONObject: value, options: .prettyPrinted)
-                let session = try  JSONDecoder().decode(Session.self, from: data)
-                sessions.append(session)
-            } catch {
-                print("⛔️ Error decoding Sessions from JSON: \(error.localizedDescription)")
-            }
-        }
-    }
-}
-
 // MARK: - ARSessionDelegate
 
 extension EyeTracking: ARSessionDelegate {
-    /// TODO: Documentation
+    // TODO: Documentation
     public func session(_ session: ARSession, didUpdate frame: ARFrame) {
         guard let anchor = frame.anchors.first as? ARFaceAnchor else { return }
         guard let orientation = UIApplication.shared.windows.first?.windowScene?.interfaceOrientation else { return }
@@ -201,7 +136,7 @@ extension EyeTracking: ARSessionDelegate {
         for blendShape in configuration.blendShapes {
             guard let value = anchor.blendShapes[blendShape]?.doubleValue else { continue }
 
-            // TODO: Clean up. Should be able to do this without if statement.
+            // FIXME: Clean up. Should be able to do this without if statement.
             if currentSession?.blendShapes[blendShape.rawValue] != nil {
                 currentSession?.blendShapes[blendShape.rawValue]?.append(
                     BlendShape(
@@ -237,7 +172,7 @@ extension EyeTracking: ARSessionDelegate {
 // MARK: - ARCamera TrackingState
 
 extension EyeTracking {
-    /// TODO: Documentation
+    // TODO: Documentation
     func trackingStateString(for frame: ARFrame) -> String? {
         switch frame.camera.trackingState {
         case .notAvailable:
@@ -267,6 +202,71 @@ extension EyeTracking {
     }
 }
 
+// MARK: - Exporting Data
+
+extension EyeTracking {
+    // TODO: Documentation
+    public typealias JSON = [String: Any]
+
+    // TODO: Documentation
+    public func exportJSON() -> JSON {
+        var jsonSessions = JSON()
+
+        for session in sessions {
+            do {
+                let data = try JSONEncoder().encode(session)
+                let json = try JSONSerialization.jsonObject(with: data, options: .allowFragments)
+                jsonSessions[session.id.uuidString] = json
+            } catch {
+                assertionFailure("Encoding Session into JSON failed with error: \(error.localizedDescription)")
+            }
+        }
+
+        return jsonSessions
+    }
+}
+
+// MARK: - Importing Data
+
+extension EyeTracking {
+    // TODO: Documentation
+    public func importSession(from data: Data) {
+        do {
+            let session = try JSONDecoder().decode(Session.self, from: data)
+            sessions.append(session)
+        } catch {
+            print("⛔️ Error decoding Session from Data: \(error.localizedDescription)")
+        }
+    }
+
+    // TODO: Documentation
+    public func importSession(from string: String) {
+        do {
+            guard let data = string.data(using: .utf8) else {
+                print("⛔️ Error converting Session string to Data object.")
+                return
+            }
+            let session = try JSONDecoder().decode(Session.self, from: data)
+            sessions.append(session)
+        } catch {
+            print("⛔️ Error decoding Session from Data: \(error.localizedDescription)")
+        }
+    }
+
+    // TODO: Documentation
+    public func importSessions(from json: JSON) {
+        for (_, value) in json {
+            do {
+                let data = try JSONSerialization.data(withJSONObject: value, options: .prettyPrinted)
+                let session = try  JSONDecoder().decode(Session.self, from: data)
+                sessions.append(session)
+            } catch {
+                print("⛔️ Error decoding Sessions from JSON: \(error.localizedDescription)")
+            }
+        }
+    }
+}
+
 // MARK: - Live Pointer Management
 
 extension EyeTracking {
@@ -285,10 +285,10 @@ extension EyeTracking {
         pointer.removeFromSuperview()
     }
 
-    /// TODO: Documentation
+    // TODO: Documentation
     func updatePointer(with point: CGPoint) {
         guard let size = viewController?.view.bounds.size else { return }
-        // TODO: The calculation changes based on screen orientation.
+        // FIXME: The calculation changes based on screen orientation.
         smoothX.update(with: (size.width / 2) - point.x)
         smoothY.update(with: (size.height * 1.25) - point.y)
 

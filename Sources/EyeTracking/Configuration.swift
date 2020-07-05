@@ -1,7 +1,7 @@
 import ARKit
 import Foundation
 
-/// TODO: Documentation
+// TODO: Documentation
 public struct Configuration {
     public let appID: String
     public let blendShapes: [ARFaceAnchor.BlendShapeLocation]
