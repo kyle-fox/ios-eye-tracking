@@ -41,8 +41,8 @@ public class EyeTracking: NSObject {
         return view
     }()
 
-    public required init(configuration: Configuration? = nil) {
-        self.configuration = configuration ?? Configuration(blendShapes: [])
+    public required init(configuration: Configuration) {
+        self.configuration = configuration
     }
 }
 
@@ -65,7 +65,7 @@ extension EyeTracking {
         }
 
         // Set up local properties.
-        currentSession = Session(id: UUID())
+        currentSession = Session(id: UUID(), appID: configuration.appID)
         self.viewController = viewController
 
         // Configure and start the ARSession to begin face tracking.
