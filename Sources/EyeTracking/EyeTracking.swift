@@ -91,7 +91,7 @@ extension EyeTracking {
         currentSession?.endTime = Date().timeIntervalSince1970
 
         guard let currentSession = currentSession else {
-            assertionFailure("endSession() called when no session is in progress.")
+            print("⛔️ WARNING: EyeTracking's endSession() called without a current session.")
             return
         }
 
