@@ -20,11 +20,19 @@ public class EyeTracking: NSObject {
     // TODO: Documentation
     var configuration: Configuration
 
-    // TODO: Documentation
-    weak var viewController: UIViewController?
-
     /// ARFrame's timestamp value is relative to `systemUptime`. Use this offset to convert to Unix time.
     let timeOffset: TimeInterval = Date().timeIntervalSince1970 - ProcessInfo.processInfo.systemUptime
+
+    // MARK: - UI Helpers
+    var window: UIWindow {
+        guard let window = UIApplication.shared.windows.filter({ $0.isKeyWindow }).first else {
+            assertionFailure("⛔️ Window not found - Do not call UI functions in viewDidLoad(). Wait for viewDidAppear().")
+            return UIWindow()
+        }
+
+        return window
+    }
+
 
     // MARK: - Live Pointer
 
@@ -43,6 +51,7 @@ public class EyeTracking: NSObject {
         view.layer.cornerRadius = view.frame.size.width / 2
         view.layer.cornerCurve = .continuous
         view.backgroundColor = .blue
+        view.layer.zPosition = .greatestFiniteMagnitude
         return view
     }()
 
@@ -60,7 +69,7 @@ extension EyeTracking {
     /// - parameter viewController: Optionally provide a view controller over which you
     /// wish to display onscreen diagnostics, like when using `showPointer`.
     ///
-    public func startSession(with viewController: UIViewController? = nil) {
+    public func startSession() {
         guard ARFaceTrackingConfiguration.isSupported else {
             assertionFailure("Face tracking not supported on this device.")
             return
@@ -72,7 +81,6 @@ extension EyeTracking {
 
         // Set up local properties.
         currentSession = Session(id: UUID(), appID: configuration.appID)
-        self.viewController = viewController
 
         // Configure and start the ARSession to begin face tracking.
         let configuration = ARFaceTrackingConfiguration()
@@ -98,7 +106,6 @@ extension EyeTracking {
         // Save session and reset local state.
         sessions.append(currentSession)
         self.currentSession = nil
-        viewController = nil
     }
 }
 
@@ -272,12 +279,7 @@ extension EyeTracking {
 extension EyeTracking {
     /// Call this function to display a live view of the user's gaze point.
     public func showPointer() {
-        guard let viewController = viewController else {
-            assertionFailure("Must start a session and provide a viewController.")
-            return
-        }
-        viewController.view.addSubview(pointer)
-        viewController.view.bringSubviewToFront(pointer)
+        window.addSubview(pointer)
     }
 
     /// Call this function to hide the live view of the user's gaze point.
@@ -287,7 +289,7 @@ extension EyeTracking {
 
     // TODO: Documentation
     func updatePointer(with point: CGPoint) {
-        guard let size = viewController?.view.bounds.size else { return }
+        let size = UIScreen.main.bounds.size
         // FIXME: The calculation changes based on screen orientation.
         smoothX.update(with: (size.width / 2) - point.x)
         smoothY.update(with: (size.height * 1.25) - point.y)

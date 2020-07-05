@@ -15,13 +15,21 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        eyeTracking.startSession(with: self)
+        eyeTracking.startSession()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
         eyeTracking.showPointer()
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
-            self.eyeTracking.endSession()
-            let json = self.eyeTracking.exportJSON()
-            print("⛔️ \(json)")
+            let newVC = UIViewController()
+            newVC.view.backgroundColor = .white
+            self.present(newVC, animated: true, completion: nil)
+
+//            self.eyeTracking.endSession()
+//            let json = self.eyeTracking.exportJSON()
+//            print("⛔️ \(json)")
         }
     }
 }
