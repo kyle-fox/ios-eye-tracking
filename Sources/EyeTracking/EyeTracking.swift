@@ -6,8 +6,6 @@ public class EyeTracking: NSObject {
 
     // MARK: - Public Properties
 
-    var configuration: Configuration
-
     /// Array of sessions completed during the app's runtime.
     public var sessions = [Session]()
 
@@ -17,6 +15,7 @@ public class EyeTracking: NSObject {
     // MARK: - Internal Properties
 
     let arSession = ARSession()
+    var configuration: Configuration
     weak var viewController: UIViewController?
 
     /// ARFrame's timestamp value is relative to `systemUptime`. Use this offset to convert to Unix time.
@@ -142,21 +141,38 @@ extension EyeTracking: ARSessionDelegate {
         let frameTimestampUnix = timeOffset + frame.timestamp
 
         currentSession?.scanPath.append(
-            Gaze(timestamp: frameTimestampUnix, x: screenPoint.x, y: screenPoint.y)
+            Gaze(
+                timestamp: frameTimestampUnix,
+                trackingState: trackingStateString(for: frame),
+                x: screenPoint.x,
+                y: screenPoint.y
+            )
         )
 
         // Save any configured blendShapeLocation values
         for blendShape in configuration.blendShapes {
             guard let value = anchor.blendShapes[blendShape]?.doubleValue else { continue }
 
-            // TODO: Clean up
+            // TODO: Clean up. Should be able to do this without if statement.
             if currentSession?.blendShapes[blendShape.rawValue] != nil {
                 currentSession?.blendShapes[blendShape.rawValue]?.append(
-                    BlendShape(timestamp: frameTimestampUnix, blendShapeLocation: blendShape, value: value)
+                    BlendShape(
+                        timestamp: frameTimestampUnix,
+                        trackingState: trackingStateString(for: frame),
+                        blendShapeLocation: blendShape,
+                        value: value
+                    )
                 )
             } else {
                 currentSession?.blendShapes.updateValue(
-                    [BlendShape(timestamp: frameTimestampUnix, blendShapeLocation: blendShape, value: value)],
+                    [
+                        BlendShape(
+                            timestamp: frameTimestampUnix,
+                            trackingState: trackingStateString(for: frame),
+                            blendShapeLocation: blendShape,
+                            value: value
+                        )
+                    ],
                     forKey: blendShape.rawValue
                 )
             }
@@ -167,6 +183,38 @@ extension EyeTracking: ARSessionDelegate {
         // Update UI
 
         updatePointer(with: screenPoint)
+    }
+}
+
+// MARK: - ARCamera TrackingState
+
+extension EyeTracking {
+    func trackingStateString(for frame: ARFrame) -> String? {
+        switch frame.camera.trackingState {
+        case .notAvailable:
+//            print("🎥 NOT AVAILABLE.")
+            return "notAvailable"
+        case let .limited(reason):
+            switch reason {
+            case .excessiveMotion:
+//                print("🎥 EXCESSIVE MOTION.")
+                return "limited.excessiveMotion"
+            case .initializing:
+//                print("🎥 INITIALIZING.")
+                return "limited.initializing"
+            case .insufficientFeatures:
+//                print("🎥 INSUFFICIENT FEATURES.")
+                return "limited.insufficientFeatures"
+            case .relocalizing:
+//                print("🎥 RELOCALIZING.")
+                return "limited.relocalizing"
+            @unknown default:
+                assertionFailure("New ARCamera.TrackingState cases.")
+                return nil
+            }
+        case .normal:
+            return nil
+        }
     }
 }
 
