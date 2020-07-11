@@ -14,10 +14,10 @@ public class EyeTracking: NSObject {
 
     // MARK: - Internal Properties
 
-    // TODO: Documentation
+    /// Initialize ARKit's ARSession when the class is created. This is the most lightweight method for accessing all facial tracking features.
     let arSession = ARSession()
 
-    // TODO: Documentation
+    /// Internal storage for the Configuration object. This is created at initialization.
     var configuration: Configuration
 
     /// ARFrame's timestamp value is relative to `systemUptime`. Use this offset to convert to Unix time.
@@ -40,6 +40,7 @@ public class EyeTracking: NSObject {
     var smoothX = LowPassFilter(value: 0, filterValue: 0.85)
     var smoothY = LowPassFilter(value: 0, filterValue: 0.85)
 
+    ///
     /// A small, round dot for viewing live gaze point onscreen.
     ///
     /// To display, provide a **fullscreen** `viewController` in `startSession` and
@@ -55,7 +56,13 @@ public class EyeTracking: NSObject {
         return view
     }()
 
-    // TODO: Documentation
+    ///
+    /// Create an instance of EyeTracking with a given Configuration
+    ///
+    /// **You must store a strong reference to this class or else risk losing a session's data.**
+    ///
+    /// - parameter configuration: The initial configuration object for EyeTracking. See its documentation for details.
+    ///
     public required init(configuration: Configuration) {
         self.configuration = configuration
     }
@@ -64,6 +71,7 @@ public class EyeTracking: NSObject {
 // MARK: - Session Management
 
 extension EyeTracking {
+    ///
     /// Start an eye tracking Session.
     ///
     /// - parameter viewController: Optionally provide a view controller over which you
@@ -90,6 +98,7 @@ extension EyeTracking {
         arSession.run(configuration, options: [.resetTracking, .removeExistingAnchors])
     }
 
+    ///
     /// End an eye tracking Session.
     ///
     /// When this function is called, the Session is saved, ready for exporting in JSON.
@@ -112,7 +121,6 @@ extension EyeTracking {
 // MARK: - ARSessionDelegate
 
 extension EyeTracking: ARSessionDelegate {
-    // TODO: Documentation
     public func session(_ session: ARSession, didUpdate frame: ARFrame) {
         guard let anchor = frame.anchors.first as? ARFaceAnchor else { return }
         guard let orientation = UIApplication.shared.windows.first?.windowScene?.interfaceOrientation else { return }
@@ -179,7 +187,24 @@ extension EyeTracking: ARSessionDelegate {
 // MARK: - ARCamera TrackingState
 
 extension EyeTracking {
-    // TODO: Documentation
+    ///
+    /// Returns a string representation as reported by the given ARFrame's camera, if it reports anything other than `.normal`.
+    /// Note: If the state is `.normal`, this will return `nil`.
+    ///
+    /// Mappings to `ARCamera.TrackingState`:
+    ///
+    /// `.notAvailable` -> `"notAvailable"`
+    ///
+    /// `.excessiveMotion` -> `"limited.excessiveMotion"`
+    ///
+    /// `.initializing` -> `"limited.initializing"`
+    ///
+    /// `.insufficientFeatures` -> `"limited.insufficientFeatures"`
+    ///
+    /// `.relocalizing` -> `"limited.relocalizing"`
+    ///
+    /// - parameter frame: The `ARFrame` you wish to inspect.
+    ///
     func trackingStateString(for frame: ARFrame) -> String? {
         switch frame.camera.trackingState {
         case .notAvailable:
@@ -212,65 +237,122 @@ extension EyeTracking {
 // MARK: - Exporting Data
 
 extension EyeTracking {
-    // TODO: Documentation
-    public typealias JSON = [String: Any]
+    ///
+    /// Exports a `Session` for the given `sessionID` on this device to a `Data` object.
+    /// This includes both what is stored in memory and what is stored on disk.
+    ///
+    /// - parameter encoding: Provide a key encoding strategy for the object's json keys.
+    ///
+    /// - Throws: Passes along any failure from `JSONEncoder`.
+    ///
+    public func export(sessionID: String, with encoding: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys) throws -> Data? {
+        guard let session = sessions.first(where: { $0.id.uuidString == sessionID }) else { return nil }
+        // TODO: Check for sessions on disk.
+        let encoder = JSONEncoder()
+        encoder.keyEncodingStrategy = encoding
+        return try encoder.encode(session)
+    }
 
-    // TODO: Documentation
-    public func exportJSON() -> JSON {
-        var jsonSessions = JSON()
+    ///
+    /// Exports a `Session` for the given `sessionID` on this device to a `String` in json format.
+    /// This includes both what is stored in memory and what is stored on disk.
+    ///
+    /// - parameter encoding: Provide a key encoding strategy for the object's json keys.
+    ///
+    /// - Throws: Passes along any failure from `JSONEncoder`.
+    ///
+    public func exportString(sessionID: String, with encoding: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys) throws -> String? {
+        guard let data = try export(sessionID: sessionID, with: encoding) else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
 
-        for session in sessions {
-            do {
-                let data = try JSONEncoder().encode(session)
-                let json = try JSONSerialization.jsonObject(with: data, options: .allowFragments)
-                jsonSessions[session.id.uuidString] = json
-            } catch {
-                assertionFailure("Encoding Session into JSON failed with error: \(error.localizedDescription)")
-            }
-        }
+    ///
+    /// Exports all sessions on this device to a `Data` object.
+    /// This includes both what is stored in memory and what is stored on disk.
+    ///
+    /// - parameter encoding: Provide a key encoding strategy for the object's json keys.
+    ///
+    /// - Throws: Passes along any failure from `JSONEncoder`.
+    ///
+    public func exportAll(with encoding: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys) throws -> Data {
+        let encoder = JSONEncoder()
+        encoder.keyEncodingStrategy = encoding
+        // TODO: Get sessions from disk.
+        return try encoder.encode(sessions)
+    }
 
-        return jsonSessions
+    ///
+    /// Exports all sessions on this device to a `String` in json format.
+    /// This includes both what is stored in memory and what is stored on disk.
+    ///
+    /// - parameter encoding: Provide a key encoding strategy for the object's json keys.
+    ///
+    /// - Throws: Passes along any failure from `JSONEncoder`.
+    ///
+    public func exportAllString(with encoding: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys) throws -> String? {
+        let data = try exportAll(with: encoding)
+        return String(data: data, encoding: .utf8)
     }
 }
 
 // MARK: - Importing Data
 
 extension EyeTracking {
-    // TODO: Documentation
-    public func importSession(from data: Data) {
-        do {
-            let session = try JSONDecoder().decode(Session.self, from: data)
-            sessions.append(session)
-        } catch {
-            print("⛔️ Error decoding Session from Data: \(error.localizedDescription)")
-        }
+    ///
+    /// Import a `Session` from a `Data` object. This can be useful if using an API to pull a `Session` with `URLSession`.
+    ///
+    /// - parameter data: The object of type `Data` that contains a single `Session`.
+    ///
+    /// - Throws: Passes along any failure from `JSONDecoder`.
+    ///
+    public func importSession(from data: Data) throws {
+        let session = try JSONDecoder().decode(Session.self, from: data)
+        sessions.append(session)
     }
 
-    // TODO: Documentation
-    public func importSession(from string: String) {
-        do {
-            guard let data = string.data(using: .utf8) else {
-                print("⛔️ Error converting Session string to Data object.")
-                return
-            }
-            let session = try JSONDecoder().decode(Session.self, from: data)
-            sessions.append(session)
-        } catch {
-            print("⛔️ Error decoding Session from Data: \(error.localizedDescription)")
-        }
+    ///
+    /// Import an array of `Session`s from a `Data` object. This can be useful if using an API to pull `Session`s with `URLSession`.
+    ///
+    /// - parameter data: The object of type `Data` that contains an array of `Session`s.
+    ///
+    /// - Throws: Passes along any failure from `JSONDecoder`.
+    ///
+    public func importSessions(from data: Data) throws {
+        let sessions = try JSONDecoder().decode([Session].self, from: data)
+        self.sessions.append(contentsOf: sessions)
     }
 
-    // TODO: Documentation
-    public func importSessions(from json: JSON) {
-        for (_, value) in json {
-            do {
-                let data = try JSONSerialization.data(withJSONObject: value, options: .prettyPrinted)
-                let session = try  JSONDecoder().decode(Session.self, from: data)
-                sessions.append(session)
-            } catch {
-                print("⛔️ Error decoding Sessions from JSON: \(error.localizedDescription)")
-            }
+    ///
+    /// Import a `Session` from a `String`, which is expected to be in JSON format.
+    /// Use this to re-import any single session exported with `exportSession`.
+    ///
+    /// - parameter jsonString: The object of type `String` that contains a single `Session`.
+    ///
+    /// - Throws: Passes along any failure from `JSONDecoder`.
+    ///
+    public func importSession(from jsonString: String) throws {
+        guard let data = jsonString.data(using: .utf8) else {
+            assertionFailure("Error converting Session string to Data object. Check string encoding.")
+            return
         }
+
+        try importSession(from: data)
+    }
+
+    ///
+    /// Import an array of `Session`s from a `String`, which is expected to be in JSON format.
+    /// Use this to re-import any exported list of sessions exported with `exportSessions`.
+    ///
+    /// - parameter jsonString: The object of type `String` that contains an array of `Session` objects.
+    ///
+    /// - Throws: Passes along any failure from `JSONDecoder`.
+    ///
+    public func importSessions(from jsonString: String) throws {
+        guard let data = jsonString.data(using: .utf8) else {
+            assertionFailure("Error converting Session string to Data object. Check string encoding.")
+            return
+        }
+        try importSessions(from: data)
     }
 }
 
@@ -287,7 +369,7 @@ extension EyeTracking {
         pointer.removeFromSuperview()
     }
 
-    // TODO: Documentation
+    /// Update the live pointer's position to a given point. This location will be smoothed using `LowPassFilter`.
     func updatePointer(with point: CGPoint) {
         let size = UIScreen.main.bounds.size
         // FIXME: The calculation changes based on screen orientation.
