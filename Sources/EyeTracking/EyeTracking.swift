@@ -1,26 +1,30 @@
 import ARKit
 import UIKit
 
-/// EyeTracking is a class for easily recording a user's gaze location and blink data.
+///
+/// EyeTracking is a class for easily recording a user's gaze location, using
+/// `ARKit`'s eye tracking capabilities, and, optionally, any number of facial
+/// tracking data points. See `Configuration` for more information.
+///
 public class EyeTracking: NSObject {
 
     // MARK: - Public Properties
 
-    /// Array of sessions completed during the app's runtime.
+    /// Array of `Session`s completed during the app's runtime.
     public var sessions = [Session]()
 
-    /// The currently running session. If this is `nil`, then no session is in progress.
+    /// The currently running `Session`. If this is `nil`, then no `Session` is in progress.
     public var currentSession: Session?
 
     // MARK: - Internal Properties
 
-    /// Initialize ARKit's ARSession when the class is created. This is the most lightweight method for accessing all facial tracking features.
+    /// Initialize `ARKit`'s `ARSession` when the class is created. This is the most lightweight method for accessing all facial tracking features.
     let arSession = ARSession()
 
-    /// Internal storage for the Configuration object. This is created at initialization.
+    /// Internal storage for the `Configuration` object. This is created at initialization.
     var configuration: Configuration
 
-    /// ARFrame's timestamp value is relative to `systemUptime`. Use this offset to convert to Unix time.
+    /// `ARFrame`'s timestamp value is relative to `systemUptime`. Use this offset to convert to Unix time.
     let timeOffset: TimeInterval = Date().timeIntervalSince1970 - ProcessInfo.processInfo.systemUptime
 
     // MARK: - UI Helpers
@@ -43,9 +47,9 @@ public class EyeTracking: NSObject {
     ///
     /// A small, round dot for viewing live gaze point onscreen.
     ///
-    /// To display, provide a **fullscreen** `viewController` in `startSession` and
-    /// call `showPointer` any time after the session starts.
-    /// Default size is 30x30, and color is blue. This `UIView` can be customized at any time.
+    /// To display, call `showPointer` any time after the session starts.
+    /// Default size is 30x30 and color is blue, but this can be customized
+    /// like any other `UIView`.
     ///
     public lazy var pointer: UIView = {
         let view = UIView(frame: CGRect(x: 0, y: 0, width: 30, height: 30))
@@ -57,9 +61,9 @@ public class EyeTracking: NSObject {
     }()
 
     ///
-    /// Create an instance of EyeTracking with a given Configuration
+    /// Create an instance of `EyeTracking` with a given `Configuration`.
     ///
-    /// **You must store a strong reference to this class or else risk losing a session's data.**
+    /// - Warning: You must store a strong reference to this class or else risk losing a session's data.
     ///
     /// - parameter configuration: The initial configuration object for EyeTracking. See its documentation for details.
     ///
@@ -72,10 +76,10 @@ public class EyeTracking: NSObject {
 
 extension EyeTracking {
     ///
-    /// Start an eye tracking Session.
+    /// Start an eye tracking `Session`.
     ///
-    /// - parameter viewController: Optionally provide a view controller over which you
-    /// wish to display onscreen diagnostics, like when using `showPointer`.
+    /// - Warning: Check that `currentSession` is not `nil` before calling.
+    /// This function will fail if there is a current `Session` in progress.
     ///
     public func startSession() {
         guard ARFaceTrackingConfiguration.isSupported else {
@@ -99,9 +103,9 @@ extension EyeTracking {
     }
 
     ///
-    /// End an eye tracking Session.
+    /// End an eye tracking `Session`.
     ///
-    /// When this function is called, the Session is saved, ready for exporting in JSON.
+    /// When this function is called, the `Session` is saved to disk and can be exported at any time.
     ///
     public func endSession() {
         arSession.pause()
