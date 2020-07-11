@@ -22,14 +22,14 @@ class ViewController: UIViewController {
         super.viewDidAppear(animated)
         eyeTracking.showPointer()
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
-            let newVC = UIViewController()
-            newVC.view.backgroundColor = .white
-            self.present(newVC, animated: true, completion: nil)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+//            let newVC = UIViewController()
+//            newVC.view.backgroundColor = .white
+//            self.present(newVC, animated: true, completion: nil)
 
-//            self.eyeTracking.endSession()
-//            let json = try? self.eyeTracking.exportAllString(with: .useDefaultKeys)
-//            print("⛔️ \(json ?? "")")
+            self.eyeTracking.endSession()
+            let json = try? self.eyeTracking.exportAllString(with: .useDefaultKeys)
+            print("⛔️ \(json ?? "")")
         }
     }
 }

@@ -1,9 +1,10 @@
 import Foundation
+import GRDB
 
 /// Stores the value and all contextual data for a collected `Session`.
-public struct Session: Codable {
-    /// A unique identifier for this `Session`, created at initialization.
-    public let id: UUID
+public struct Session: Codable, FetchableRecord, PersistableRecord {
+    /// A UUID identifier string for this `Session`, created at initialization.
+    public let id: String
 
     /// An identifier for the source application where the data was collected.
     /// This can be configured when `EyeTracking` is initialized, through a

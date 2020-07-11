@@ -19,9 +19,6 @@ public class EyeTracking: NSObject {
     /// Defaults to `false` to prevent too much noise in Xcode's console.
     public var loggingEnabled = false
 
-    /// Array of `Session`s completed during the app's runtime.
-    public var sessions = [Session]()
-
     // MARK: - Internal Properties
 
     /// Initialize `ARKit`'s `ARSession` when the class is created. This is the most lightweight method for accessing all facial tracking features.
@@ -123,7 +120,7 @@ extension EyeTracking {
         }
 
         // Set up local properties.
-        currentSession = Session(id: UUID(), appID: configuration.appID)
+        currentSession = Session(id: UUID().uuidString, appID: configuration.appID)
 
         // Configure and start the ARSession to begin face tracking.
         let configuration = ARFaceTrackingConfiguration()
@@ -153,7 +150,17 @@ extension EyeTracking {
         }
 
         // Save session and reset local state.
-        sessions.append(currentSession)
+        do {
+            try Database.write(currentSession)
+        } catch {
+            os_log(
+                "%{public}@",
+                log: Log.general,
+                type: .fault,
+                "⛔️ Saving session to database failed."
+            )
+        }
+
         self.currentSession = nil
     }
 }
@@ -303,8 +310,7 @@ extension EyeTracking {
     /// - Throws: Passes along any failure from `JSONEncoder`.
     ///
     public func export(sessionID: String, with encoding: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys) throws -> Data? {
-        guard let session = sessions.first(where: { $0.id.uuidString == sessionID }) else { return nil }
-        // TODO: Check for sessions on disk.
+        guard let session = Database.fetch(sessionID) else { return nil }
         let encoder = JSONEncoder()
         encoder.keyEncodingStrategy = encoding
         return try encoder.encode(session)
@@ -331,10 +337,10 @@ extension EyeTracking {
     ///
     /// - Throws: Passes along any failure from `JSONEncoder`.
     ///
-    public func exportAll(with encoding: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys) throws -> Data {
+    public func exportAll(with encoding: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys) throws -> Data? {
+        guard let sessions = Database.fetchAll() else { return nil }
         let encoder = JSONEncoder()
         encoder.keyEncodingStrategy = encoding
-        // TODO: Get sessions from disk.
         return try encoder.encode(sessions)
     }
 
@@ -347,7 +353,7 @@ extension EyeTracking {
     /// - Throws: Passes along any failure from `JSONEncoder`.
     ///
     public func exportAllString(with encoding: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys) throws -> String? {
-        let data = try exportAll(with: encoding)
+        guard let data = try exportAll(with: encoding) else { return nil }
         return String(data: data, encoding: .utf8)
     }
 }
@@ -364,7 +370,17 @@ extension EyeTracking {
     ///
     public func importSession(from data: Data) throws {
         let session = try JSONDecoder().decode(Session.self, from: data)
-        sessions.append(session)
+
+        do {
+            try Database.write(session)
+        } catch {
+            os_log(
+                "%{public}@",
+                log: Log.general,
+                type: .fault,
+                "⛔️ Importing session to database failed."
+            )
+        }
     }
 
     ///
@@ -376,7 +392,16 @@ extension EyeTracking {
     ///
     public func importSessions(from data: Data) throws {
         let sessions = try JSONDecoder().decode([Session].self, from: data)
-        self.sessions.append(contentsOf: sessions)
+        do {
+            try Database.write(sessions)
+        } catch {
+            os_log(
+                "%{public}@",
+                log: Log.general,
+                type: .fault,
+                "⛔️ Importing session array to database failed."
+            )
+        }
     }
 
     ///

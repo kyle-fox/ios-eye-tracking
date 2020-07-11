@@ -2,6 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "self:ios-eye-tracking-example.xcodeproj">
+      location = "self:">
    </FileRef>
 </Workspace>
