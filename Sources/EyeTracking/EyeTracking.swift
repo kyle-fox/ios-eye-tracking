@@ -1,4 +1,5 @@
 import ARKit
+import os.log
 import UIKit
 
 ///
@@ -10,11 +11,16 @@ public class EyeTracking: NSObject {
 
     // MARK: - Public Properties
 
-    /// Array of `Session`s completed during the app's runtime.
-    public var sessions = [Session]()
-
     /// The currently running `Session`. If this is `nil`, then no `Session` is in progress.
     public var currentSession: Session?
+
+    /// Set this value to true to enable logging through `os.log`. This is very lightweight,
+    /// so it can be used in user builds, which can be inspected at any time with `Console.app`.
+    /// Defaults to `false` to prevent too much noise in Xcode's console.
+    public var loggingEnabled = false
+
+    /// Array of `Session`s completed during the app's runtime.
+    public var sessions = [Session]()
 
     // MARK: - Internal Properties
 
@@ -24,13 +30,15 @@ public class EyeTracking: NSObject {
     /// Internal storage for the `Configuration` object. This is created at initialization.
     var configuration: Configuration
 
+    let log: Log
+
     /// `ARFrame`'s timestamp value is relative to `systemUptime`. Use this offset to convert to Unix time.
     let timeOffset: TimeInterval = Date().timeIntervalSince1970 - ProcessInfo.processInfo.systemUptime
 
     // MARK: - UI Helpers
     var window: UIWindow {
         guard let window = UIApplication.shared.windows.filter({ $0.isKeyWindow }).first else {
-            assertionFailure("⛔️ Window not found - Do not call UI functions in viewDidLoad(). Wait for viewDidAppear().")
+            assertionFailure("Window not found - Do not call UI functions in viewDidLoad(). Wait for viewDidAppear().")
             return UIWindow()
         }
 
@@ -69,6 +77,7 @@ public class EyeTracking: NSObject {
     ///
     public required init(configuration: Configuration) {
         self.configuration = configuration
+        self.log = Log(appID: configuration.appID)
     }
 }
 
@@ -112,7 +121,12 @@ extension EyeTracking {
         currentSession?.endTime = Date().timeIntervalSince1970
 
         guard let currentSession = currentSession else {
-            print("⛔️ WARNING: EyeTracking's endSession() called without a current session.")
+            os_log(
+                "%{public}@",
+                log: log.general,
+                type: .fault,
+                "⛔️ WARNING: EyeTracking's endSession() called without a current session."
+            )
             return
         }
 
@@ -141,11 +155,12 @@ extension EyeTracking: ARSessionDelegate {
 
         // Update Session Data
         let frameTimestampUnix = timeOffset + frame.timestamp
+        let trackingState = trackingStateString(for: frame)
 
         currentSession?.scanPath.append(
             Gaze(
                 timestamp: frameTimestampUnix,
-                trackingState: trackingStateString(for: frame),
+                trackingState: trackingState,
                 x: screenPoint.x,
                 y: screenPoint.y
             )
@@ -160,7 +175,7 @@ extension EyeTracking: ARSessionDelegate {
                 currentSession?.blendShapes[blendShape.rawValue]?.append(
                     BlendShape(
                         timestamp: frameTimestampUnix,
-                        trackingState: trackingStateString(for: frame),
+                        trackingState: trackingState,
                         blendShapeLocation: blendShape,
                         value: value
                     )
@@ -170,7 +185,7 @@ extension EyeTracking: ARSessionDelegate {
                     [
                         BlendShape(
                             timestamp: frameTimestampUnix,
-                            trackingState: trackingStateString(for: frame),
+                            trackingState: trackingState,
                             blendShapeLocation: blendShape,
                             value: value
                         )
@@ -179,7 +194,28 @@ extension EyeTracking: ARSessionDelegate {
                 )
             }
 
-            print("⛔️ BlendShapeLocation: \(blendShape.rawValue) -- Value: \(value)")
+            // Log a fault if tracking state is contains any information.
+            // Not governed by `loggingEnabled`, because this is always
+            // relevant and should be low frequency.
+            if let trackingState = trackingState {
+                os_log(
+                    "%{public}@: %{public}f",
+                    log: log.trackingState,
+                    type: .fault,
+                    "Tracking State:",
+                    trackingState
+                )
+            }
+
+            if loggingEnabled {
+                os_log(
+                    "%{public}@: %{public}f",
+                    log: log.blendShape(blendShape),
+                    type: .info,
+                    blendShape.rawValue,
+                    value
+                )
+            }
         }
 
         // Update UI
@@ -212,21 +248,16 @@ extension EyeTracking {
     func trackingStateString(for frame: ARFrame) -> String? {
         switch frame.camera.trackingState {
         case .notAvailable:
-//            print("🎥 NOT AVAILABLE.")
             return "notAvailable"
         case let .limited(reason):
             switch reason {
             case .excessiveMotion:
-//                print("🎥 EXCESSIVE MOTION.")
                 return "limited.excessiveMotion"
             case .initializing:
-//                print("🎥 INITIALIZING.")
                 return "limited.initializing"
             case .insufficientFeatures:
-//                print("🎥 INSUFFICIENT FEATURES.")
                 return "limited.insufficientFeatures"
             case .relocalizing:
-//                print("🎥 RELOCALIZING.")
                 return "limited.relocalizing"
             @unknown default:
                 assertionFailure("New ARCamera.TrackingState cases.")
@@ -380,8 +411,23 @@ extension EyeTracking {
         smoothX.update(with: (size.width / 2) - point.x)
         smoothY.update(with: (size.height * 1.25) - point.y)
 
-        print("⛔️ \(point.x), \(point.y)")
-        print("🔵 \(smoothX.value), \(smoothY.value)")
+        if loggingEnabled {
+            os_log(
+                "Raw:       %{public}f, %{public}f",
+                log: log.gaze,
+                type: .info,
+                point.x,
+                point.y
+            )
+
+            os_log(
+                "Converted: %{public}f, %{public}f",
+                log: log.gaze,
+                type: .info,
+                smoothX.value,
+                smoothY.value
+            )
+        }
 
         pointer.frame = CGRect(
             x: smoothX.value,
