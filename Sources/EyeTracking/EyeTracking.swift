@@ -30,9 +30,6 @@ public class EyeTracking: NSObject {
     /// Internal storage for the `Configuration` object. This is created at initialization.
     var configuration: Configuration
 
-    /// Internal object for logging to os.log using the `Log` wrapper.
-    let log: Log
-
     /// `ARFrame`'s timestamp value is relative to `systemUptime`. Use this offset to convert to Unix time.
     let timeOffset: TimeInterval = Date().timeIntervalSince1970 - ProcessInfo.processInfo.systemUptime
 
@@ -78,7 +75,6 @@ public class EyeTracking: NSObject {
     ///
     public required init(configuration: Configuration) {
         self.configuration = configuration
-        self.log = Log(appID: configuration.appID)
 
         super.init()
 
@@ -97,7 +93,7 @@ public class EyeTracking: NSObject {
     @objc func didReceiveMemoryWarning() {
         os_log(
             "%{public}@",
-            log: log.general,
+            log: Log.general,
             type: .fault,
             "⛔️ Memory Warning Received. Ending current EyeTracking Session and saving to disk."
         )
@@ -149,7 +145,7 @@ extension EyeTracking {
         guard let currentSession = currentSession else {
             os_log(
                 "%{public}@",
-                log: log.general,
+                log: Log.general,
                 type: .fault,
                 "⛔️ WARNING: EyeTracking's endSession() called without a current session."
             )
@@ -226,7 +222,7 @@ extension EyeTracking: ARSessionDelegate {
             if let trackingState = trackingState {
                 os_log(
                     "%{public}@: %{public}f",
-                    log: log.trackingState,
+                    log: Log.trackingState,
                     type: .fault,
                     "Tracking State:",
                     trackingState
@@ -236,7 +232,7 @@ extension EyeTracking: ARSessionDelegate {
             if loggingEnabled {
                 os_log(
                     "%{public}@: %{public}f",
-                    log: log.blendShape(blendShape),
+                    log: Log.blendShape(blendShape),
                     type: .info,
                     blendShape.rawValue,
                     value
@@ -440,7 +436,7 @@ extension EyeTracking {
         if loggingEnabled {
             os_log(
                 "Raw:       %{public}f, %{public}f",
-                log: log.gaze,
+                log: Log.gaze,
                 type: .info,
                 point.x,
                 point.y
@@ -448,7 +444,7 @@ extension EyeTracking {
 
             os_log(
                 "Converted: %{public}f, %{public}f",
-                log: log.gaze,
+                log: Log.gaze,
                 type: .info,
                 smoothX.value,
                 smoothY.value

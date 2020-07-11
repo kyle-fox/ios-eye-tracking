@@ -3,30 +3,24 @@ import os.log
 
 /// A simple wrapper for creating `OSLog` objects with a given `appID` string for the subsystem.
 struct Log {
-    /// Configure this using the memberwise initializer.
-    let appID: String
+    /// Identifier for use in os.log subsystem
+    static let identifier = "co.kylefox.eyetracking"
 
     /// `OSLog` instance for gaze logging.
-    var gaze: OSLog {
-        OSLog(subsystem: appID, category: "eyeTracking.gaze")
-    }
+    static let gaze = OSLog(subsystem: identifier, category: "eyeTracking.gaze")
 
     /// `OSLog` instance for general logging in the app. Primarily used to show faults.
-    var general: OSLog {
-        OSLog(subsystem: appID, category: "eyeTracking.general")
-    }
+    static let general = OSLog(subsystem: identifier, category: "eyeTracking.general")
 
     /// `OSLog` instance for `ARCamera`'s tracking state logging.
-    var trackingState: OSLog {
-        OSLog(subsystem: appID, category: "eyeTracking.trackingState")
-    }
+    static let trackingState = OSLog(subsystem: identifier, category: "eyeTracking.trackingState")
 
     ///
     /// Returns an `OSLog` instance with a category based on the given `BlendShapeLocation`.
     ///
     /// - parameter blendShapeLocation: See Apple's documentation for possible values.
     ///
-    func blendShape(_ blendShapeLocation: ARFaceAnchor.BlendShapeLocation) -> OSLog {
-        OSLog(subsystem: appID, category: "eyeTracking.\(blendShapeLocation.rawValue)")
+    static func blendShape(_ blendShapeLocation: ARFaceAnchor.BlendShapeLocation) -> OSLog {
+        OSLog(subsystem: identifier, category: "eyeTracking.\(blendShapeLocation.rawValue)")
     }
 }
