@@ -30,6 +30,7 @@ public class EyeTracking: NSObject {
     /// Internal storage for the `Configuration` object. This is created at initialization.
     var configuration: Configuration
 
+    /// Internal object for logging to os.log using the `Log` wrapper.
     let log: Log
 
     /// `ARFrame`'s timestamp value is relative to `systemUptime`. Use this offset to convert to Unix time.
@@ -78,6 +79,31 @@ public class EyeTracking: NSObject {
     public required init(configuration: Configuration) {
         self.configuration = configuration
         self.log = Log(appID: configuration.appID)
+
+        super.init()
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(didReceiveMemoryWarning),
+            name: UIApplication.didReceiveMemoryWarningNotification,
+            object: nil
+        )
+    }
+
+    ///
+    /// Handle a memory warning to prevent data loss. This will end the current session
+    /// immediately, saving all its data to disk.
+    ///
+    @objc func didReceiveMemoryWarning() {
+        os_log(
+            "%{public}@",
+            log: log.general,
+            type: .fault,
+            "⛔️ Memory Warning Received. Ending current EyeTracking Session and saving to disk."
+        )
+
+        guard currentSession != nil else { return }
+        endSession()
     }
 }
 
