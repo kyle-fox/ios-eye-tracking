@@ -10,8 +10,7 @@ public struct Configuration {
     public let blendShapes: [ARFaceAnchor.BlendShapeLocation]
 
     /// Stores the desired fidelity for a `Session`'s storage in FPS. Max is 60 fps from `ARKit` as of iOS 14.
-    public let framesPerSecond: Int = 60
-
+    public let framesPerSecond: Int = 60 // TODO: Implement FPS filter.
 
     ///
     /// Initialize a `Configuration`.

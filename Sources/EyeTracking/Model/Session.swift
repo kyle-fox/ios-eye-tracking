@@ -13,6 +13,9 @@ public struct Session: Codable {
     /// A UNIX timestamp for when this `Session` began.
     public var beginTime = Date().timeIntervalSince1970
 
+    /// Contains all relevant device data.
+    private(set) public var deviceInfo = DeviceInfo()
+
     /// A UNIX timestamp for when this `Session` ended.
     public var endTime: TimeInterval?
 

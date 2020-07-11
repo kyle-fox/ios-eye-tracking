@@ -6,6 +6,13 @@ import Foundation
 /// value from `ARKit`'s `BlendShapeLocation`.
 ///
 public struct BlendShape: Codable {
+    /// A string representation of `ARFaceAnchor.BlendShapeLocation` from
+    /// its `rawValue`. See Apple's documentation for more information.
+    public let blendShapeLocation: String
+
+    /// An `Int` representing the rawValue of `UIDeviceOrientation`.
+    private(set) public var orientation = UIDevice.current.orientation.rawValue
+
     /// A UNIX timestamp for when this data point was collected.
     public let timestamp: TimeInterval
 
@@ -13,10 +20,6 @@ public struct BlendShape: Codable {
     /// by its `ARFrame`'s `ARCamera` instance. If `nil`, then data
     /// quality is normal.
     public let trackingState: String?
-
-    /// A string representation of `ARFaceAnchor.BlendShapeLocation` from
-    /// its `rawValue`. See Apple's documentation for more information.
-    public let blendShapeLocation: String
 
     /// The data point's value - a numerical value from 0.0 to 1.0.
     /// See Apple's documentation for each `BlendShapeLocation` for specific
@@ -28,9 +31,9 @@ public struct BlendShape: Codable {
     /// `ARFaceAnchor.BlendShapeLocation` to its `rawValue` string.
     ///
     init(
+        blendShapeLocation: ARFaceAnchor.BlendShapeLocation,
         timestamp: TimeInterval,
         trackingState: String?,
-        blendShapeLocation: ARFaceAnchor.BlendShapeLocation,
         value: Double
     ) {
         self.timestamp = timestamp

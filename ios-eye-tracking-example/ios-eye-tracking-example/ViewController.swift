@@ -28,8 +28,8 @@ class ViewController: UIViewController {
             self.present(newVC, animated: true, completion: nil)
 
 //            self.eyeTracking.endSession()
-//            let json = self.eyeTracking.exportJSON()
-//            print("⛔️ \(json)")
+//            let json = try? self.eyeTracking.exportAllString(with: .useDefaultKeys)
+//            print("⛔️ \(json ?? "")")
         }
     }
 }

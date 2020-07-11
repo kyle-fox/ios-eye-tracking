@@ -174,9 +174,9 @@ extension EyeTracking: ARSessionDelegate {
             if currentSession?.blendShapes[blendShape.rawValue] != nil {
                 currentSession?.blendShapes[blendShape.rawValue]?.append(
                     BlendShape(
+                        blendShapeLocation: blendShape,
                         timestamp: frameTimestampUnix,
                         trackingState: trackingState,
-                        blendShapeLocation: blendShape,
                         value: value
                     )
                 )
@@ -184,9 +184,9 @@ extension EyeTracking: ARSessionDelegate {
                 currentSession?.blendShapes.updateValue(
                     [
                         BlendShape(
+                            blendShapeLocation: blendShape,
                             timestamp: frameTimestampUnix,
                             trackingState: trackingState,
-                            blendShapeLocation: blendShape,
                             value: value
                         )
                     ],
