@@ -21,7 +21,8 @@ public class EyeTracking: NSObject {
 
     // MARK: - Internal Properties
 
-    /// Initialize `ARKit`'s `ARSession` when the class is created. This is the most lightweight method for accessing all facial tracking features.
+    /// Initialize `ARKit`'s `ARSession` when the class is created. This is the most lightweight
+    /// method for accessing all facial tracking features.
     let arSession = ARSession()
 
     /// Internal storage for the `Configuration` object. This is created at initialization.
@@ -257,8 +258,8 @@ extension EyeTracking: ARSessionDelegate {
 
 extension EyeTracking {
     ///
-    /// Returns a string representation as reported by the given ARFrame's camera, if it reports anything other than `.normal`.
-    /// Note: If the state is `.normal`, this will return `nil`.
+    /// Returns a string representation as reported by the given ARFrame's camera, if it reports anything
+    /// other than `.normal`. Note: If the state is `.normal`, this will return `nil`.
     ///
     /// Mappings to `ARCamera.TrackingState`:
     ///
@@ -362,7 +363,8 @@ extension EyeTracking {
 
 extension EyeTracking {
     ///
-    /// Import a `Session` from a `Data` object. This can be useful if using an API to pull a `Session` with `URLSession`.
+    /// Import a `Session` from a `Data` object. This can be useful if using an API to pull
+    /// a `Session` with `URLSession`.
     ///
     /// - parameter data: The object of type `Data` that contains a single `Session`.
     ///
@@ -384,7 +386,8 @@ extension EyeTracking {
     }
 
     ///
-    /// Import an array of `Session`s from a `Data` object. This can be useful if using an API to pull `Session`s with `URLSession`.
+    /// Import an array of `Session`s from a `Data` object. This can be useful if using an API
+    /// to pull `Session`s with `URLSession`.
     ///
     /// - parameter data: The object of type `Data` that contains an array of `Session`s.
     ///

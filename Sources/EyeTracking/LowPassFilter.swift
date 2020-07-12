@@ -1,6 +1,9 @@
 import UIKit
 
-/// Simple implementation of a low pass filter for `CGFloat` values. Used for smoothing display of facial data on screen.
+///
+/// Simple implementation of a low pass filter for `CGFloat` values.
+/// Used for smoothing display of facial data on screen.
+///
 struct LowPassFilter {
     /// Current value
     private(set) var value: CGFloat
