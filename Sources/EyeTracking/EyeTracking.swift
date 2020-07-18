@@ -200,29 +200,14 @@ extension EyeTracking: ARSessionDelegate {
         for blendShape in configuration.blendShapes {
             guard let value = anchor.blendShapes[blendShape]?.doubleValue else { continue }
 
-            // FIXME: Clean up. Should be able to do this without if statement.
-            if currentSession?.blendShapes[blendShape.rawValue] != nil {
-                currentSession?.blendShapes[blendShape.rawValue]?.append(
-                    BlendShape(
-                        blendShapeLocation: blendShape,
-                        timestamp: frameTimestampUnix,
-                        trackingState: trackingState,
-                        value: value
-                    )
+            currentSession?.blendShapes[blendShape.rawValue, default: []].append(
+                BlendShape(
+                    blendShapeLocation: blendShape,
+                    timestamp: frameTimestampUnix,
+                    trackingState: trackingState,
+                    value: value
                 )
-            } else {
-                currentSession?.blendShapes.updateValue(
-                    [
-                        BlendShape(
-                            blendShapeLocation: blendShape,
-                            timestamp: frameTimestampUnix,
-                            trackingState: trackingState,
-                            value: value
-                        )
-                    ],
-                    forKey: blendShape.rawValue
-                )
-            }
+            )
 
             // Log a fault if tracking state is contains any information.
             // Not governed by `loggingEnabled`, because this is always
