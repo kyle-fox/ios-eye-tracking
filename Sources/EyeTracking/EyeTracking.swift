@@ -173,15 +173,43 @@ extension EyeTracking: ARSessionDelegate {
         guard let anchor = frame.anchors.first as? ARFaceAnchor else { return }
         guard let orientation = UIApplication.shared.windows.first?.windowScene?.interfaceOrientation else { return }
 
-        // Convert lookAtPoint vector to world coordinate space, from face coordinate space.
-        let point = anchor.transform * SIMD4<Float>(anchor.lookAtPoint, 1)
+        // Get distance between camera and achor
+        let distanceVector = frame.camera.transform.columns.3 - anchor.transform.columns.3
 
-        // Project lookAtPoint into screen coordinates.
-        let screenPoint = frame.camera.projectPoint(
-            SIMD3<Float>(x: point.x, y: point.y, z: point.z),
+        // Project the new distance vector into screen coordinate space.
+        let distancePoint = frame.camera.projectPoint(
+            SIMD3<Float>(x: distanceVector.x, y: distanceVector.y, z: distanceVector.z),
             orientation: orientation,
             viewportSize: UIScreen.main.bounds.size
         )
+
+        // Convert lookAtPoint vector to world coordinate space, from face coordinate space.
+        let lookAtVector = anchor.transform * SIMD4<Float>(anchor.lookAtPoint, 1)
+
+        // Project lookAtPoint into screen coordinates.
+        let lookPoint = frame.camera.projectPoint(
+            SIMD3<Float>(x: lookAtVector.x, y: lookAtVector.y, z: lookAtVector.z),
+            orientation: orientation,
+            viewportSize: UIScreen.main.bounds.size
+        )
+
+        let screenPoint: CGPoint
+
+        // TODO: These are adjusted by hand, but could be calibrated in the future.
+        // TODO: Investigate why Portrait orientation is much less reactive than the other 3
+        switch orientation {
+        case .landscapeRight:
+            screenPoint = CGPoint(x: lookPoint.x + (distancePoint.x / 2), y: lookPoint.y - (distancePoint.y / 2))
+        case .landscapeLeft:
+            screenPoint = CGPoint(x: lookPoint.x - (distancePoint.x / 2), y: lookPoint.y - (distancePoint.y / 2))
+        case .portrait:
+            screenPoint = CGPoint(x: lookPoint.x, y: lookPoint.y)
+        case .portraitUpsideDown:
+            screenPoint = CGPoint(x: lookPoint.x + (distancePoint.x / 2), y: lookPoint.y - (distancePoint.y))
+        default:
+            assertionFailure("Unknown Orientation")
+            return
+        }
 
         // Update Session Data
         let frameTimestampUnix = timeOffset + frame.timestamp
@@ -200,7 +228,7 @@ extension EyeTracking: ARSessionDelegate {
         for blendShape in configuration.blendShapes {
             guard let value = anchor.blendShapes[blendShape]?.doubleValue else { continue }
 
-            currentSession?.blendShapes[blendShape.rawValue, default: []].append(
+            currentSession?.blendShapes[blendShape.rawValue, default: [BlendShape]()].append(
                 BlendShape(
                     blendShapeLocation: blendShape,
                     timestamp: frameTimestampUnix,
@@ -441,10 +469,26 @@ extension EyeTracking {
 
     /// Update the live pointer's position to a given point. This location will be smoothed using `LowPassFilter`.
     func updatePointer(with point: CGPoint) {
+        guard let orientation = UIApplication.shared.windows.first?.windowScene?.interfaceOrientation else { return }
         let size = UIScreen.main.bounds.size
-        // FIXME: The calculation changes based on screen orientation.
-        smoothX.update(with: (size.width / 2) - point.x)
-        smoothY.update(with: (size.height * 1.25) - point.y)
+
+        switch orientation {
+        case .landscapeRight:
+            smoothX.update(with: size.width - 10 - point.x)
+            smoothY.update(with: size.height - 10 - point.y)
+        case .landscapeLeft:
+            smoothX.update(with: size.width - 20 - point.x)
+            smoothY.update(with: size.height - 20 - point.y)
+        case .portrait:
+            smoothX.update(with: size.width - point.x)
+            smoothY.update(with: size.height - point.y)
+        case .portraitUpsideDown:
+            smoothX.update(with: size.width - point.x)
+            smoothY.update(with: size.height - point.y)
+        default:
+            assertionFailure("Unknown Orientation")
+            return
+        }
 
         if loggingEnabled {
             os_log(
