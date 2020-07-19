@@ -45,8 +45,7 @@ public class EyeTracking: NSObject {
     // MARK: - Live Pointer
 
     /// These values are used by the live pointer for smooth display onscreen.
-    var smoothX = LowPassFilter(value: 0, filterValue: 0.85)
-    var smoothY = LowPassFilter(value: 0, filterValue: 0.85)
+    var pointerFilter: (x: LowPassFilter, y: LowPassFilter)?
 
     ///
     /// A small, round dot for viewing live gaze point onscreen.
@@ -139,6 +138,7 @@ extension EyeTracking {
         }
 
         self.currentSession = nil
+        pointerFilter = nil
     }
 }
 
@@ -451,26 +451,31 @@ extension EyeTracking {
     func updatePointer(with point: CGPoint) {
         guard let orientation = UIApplication.shared.windows.first?.windowScene?.interfaceOrientation else { return }
         let size = UIScreen.main.bounds.size
+        let adjusted: (x: CGFloat, y: CGFloat)
 
         // These adjustments are manual, based on testing.
         // This could be adjusted during a configuration process of some kind.
         switch orientation {
-        case .landscapeRight:
-            smoothX.update(with: size.width - 10 - point.x)
-            smoothY.update(with: size.height - 10 - point.y)
-        case .landscapeLeft:
-            smoothX.update(with: size.width - 20 - point.x)
-            smoothY.update(with: size.height - 20 - point.y)
-        case .portrait:
-            smoothX.update(with: size.width - point.x)
-            smoothY.update(with: size.height - point.y)
-        case .portraitUpsideDown:
-            smoothX.update(with: size.width - point.x)
-            smoothY.update(with: size.height - point.y)
+        case .landscapeRight, .landscapeLeft:
+            adjusted = (size.width - 20 - point.x, size.height - 20 - point.y)
+        case .portrait, .portraitUpsideDown:
+            adjusted = (size.width - point.x, size.height - point.y)
         default:
             assertionFailure("Unknown Orientation")
             return
         }
+
+        if pointerFilter == nil {
+            pointerFilter = (
+                LowPassFilter(value: adjusted.x, filterValue: 0.85),
+                LowPassFilter(value: adjusted.y, filterValue: 0.85)
+            )
+        } else {
+            pointerFilter?.x.update(with: adjusted.x)
+            pointerFilter?.y.update(with: adjusted.y)
+        }
+
+        guard let pointerFilter = pointerFilter else { return }
 
         if loggingEnabled {
             os_log(
@@ -485,14 +490,14 @@ extension EyeTracking {
                 "Converted: %{public}f, %{public}f",
                 log: Log.gaze,
                 type: .info,
-                smoothX.value,
-                smoothY.value
+                pointerFilter.x.value,
+                pointerFilter.y.value
             )
         }
 
         pointer.frame = CGRect(
-            x: smoothX.value,
-            y: smoothY.value,
+            x: pointerFilter.x.value,
+            y: pointerFilter.y.value,
             width: pointer.frame.width,
             height: pointer.frame.height
         )
@@ -519,33 +524,41 @@ extension EyeTracking {
         view.backgroundColor = .clear
         window.addSubview(view)
 
-        var filterX = LowPassFilter(value: firstLocation.x, filterValue: 0.85)
-        var filterY = LowPassFilter(value: firstLocation.y, filterValue: 0.85)
+        var adjusted: (x: CGFloat, y: CGFloat)
+
+        switch UIInterfaceOrientation(rawValue: firstLocation.orientation) {
+        case .landscapeRight, .landscapeLeft:
+            adjusted = (size.width - 20 - firstLocation.x, size.height - 20 - firstLocation.y)
+        case .portrait, .portraitUpsideDown:
+            adjusted = (size.width - firstLocation.x, size.height - firstLocation.y)
+        default:
+            assertionFailure("Unknown Orientation")
+            return
+        }
+
+        var filter: (x: LowPassFilter, y: LowPassFilter) = (
+            LowPassFilter(value: adjusted.x, filterValue: 0.85),
+            LowPassFilter(value: adjusted.y, filterValue: 0.85)
+        )
 
         let path = UIBezierPath()
-        path.move(to: CGPoint(x: filterX.value, y: filterY.value))
+        path.move(to: CGPoint(x: filter.x.value, y: filter.y.value))
 
         // This uses the same manual adjustments as `updatePointer`. See its comment.
-        for gaze in session.scanPath {
+        for gaze in session.scanPath[1...] {
             switch UIInterfaceOrientation(rawValue: gaze.orientation) {
-            case .landscapeRight:
-                filterX.update(with: size.width - 10 - gaze.x)
-                filterY.update(with: size.height - 10 - gaze.y)
-            case .landscapeLeft:
-                filterX.update(with: size.width - 20 - gaze.x)
-                filterY.update(with: size.height - 20 - gaze.y)
-            case .portrait:
-                filterX.update(with: size.width - gaze.x)
-                filterY.update(with: size.height - gaze.y)
-            case .portraitUpsideDown:
-                filterX.update(with: size.width - gaze.x)
-                filterY.update(with: size.height - gaze.y)
+            case .landscapeRight, .landscapeLeft:
+                filter.x.update(with: size.width - 20 - gaze.x)
+                filter.y.update(with: size.height - 20 - gaze.y)
+            case .portrait, .portraitUpsideDown:
+                filter.x.update(with: size.width - gaze.x)
+                filter.y.update(with: size.height - gaze.y)
             default:
                 assertionFailure("Unknown Orientation")
                 return
             }
 
-            path.addLine(to: CGPoint(x: filterX.value, y: filterY.value))
+            path.addLine(to: CGPoint(x: filter.x.value, y: filter.y.value))
         }
 
         let shapeLayer = CAShapeLayer()
