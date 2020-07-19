@@ -12,10 +12,12 @@ import UIKit
 class ViewController: UIViewController {
 
     let eyeTracking = EyeTracking(configuration: Configuration(appID: "ios-eye-tracking-example", blendShapes: [.eyeBlinkLeft, .eyeBlinkRight]))
+    var sessionID: String?
 
     override func viewDidLoad() {
         super.viewDidLoad()
         eyeTracking.startSession()
+        sessionID = eyeTracking.currentSession?.id
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -23,13 +25,8 @@ class ViewController: UIViewController {
         eyeTracking.showPointer()
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-//            let newVC = UIViewController()
-//            newVC.view.backgroundColor = .white
-//            self.present(newVC, animated: true, completion: nil)
-
             self.eyeTracking.endSession()
-            let json = try? self.eyeTracking.exportAllString(with: .useDefaultKeys)
-            print("⛔️ \(json ?? "")")
+            EyeTracking.displayScanpath(for: self.sessionID ?? "", animated: true)
         }
     }
 }

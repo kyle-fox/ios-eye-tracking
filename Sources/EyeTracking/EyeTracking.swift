@@ -32,7 +32,7 @@ public class EyeTracking: NSObject {
     let timeOffset: TimeInterval = Date().timeIntervalSince1970 - ProcessInfo.processInfo.systemUptime
 
     // MARK: - UI Helpers
-    var window: UIWindow {
+    static var window: UIWindow {
         guard let window = UIApplication.shared.windows.filter({ $0.isKeyWindow }).first else {
             assertionFailure("Window not found - Do not call UI functions in viewDidLoad(). Wait for viewDidAppear().")
             return UIWindow()
@@ -213,7 +213,7 @@ extension EyeTracking: ARSessionDelegate {
 
         // Update Session Data
         let frameTimestampUnix = timeOffset + frame.timestamp
-        let trackingState = trackingStateString(for: frame)
+        let trackingState = EyeTracking.trackingStateString(for: frame)
 
         currentSession?.scanPath.append(
             Gaze(
@@ -288,7 +288,7 @@ extension EyeTracking {
     ///
     /// - parameter frame: The `ARFrame` you wish to inspect.
     ///
-    func trackingStateString(for frame: ARFrame) -> String? {
+    static func trackingStateString(for frame: ARFrame) -> String? {
         switch frame.camera.trackingState {
         case .notAvailable:
             return "notAvailable"
@@ -323,7 +323,7 @@ extension EyeTracking {
     ///
     /// - Throws: Passes along any failure from `JSONEncoder`.
     ///
-    public func export(sessionID: String, with encoding: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys) throws -> Data? {
+    public static func export(sessionID: String, with encoding: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys) throws -> Data? {
         guard let session = Database.fetch(sessionID) else { return nil }
         let encoder = JSONEncoder()
         encoder.keyEncodingStrategy = encoding
@@ -338,7 +338,7 @@ extension EyeTracking {
     ///
     /// - Throws: Passes along any failure from `JSONEncoder`.
     ///
-    public func exportString(sessionID: String, with encoding: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys) throws -> String? {
+    public static func exportString(sessionID: String, with encoding: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys) throws -> String? {
         guard let data = try export(sessionID: sessionID, with: encoding) else { return nil }
         return String(data: data, encoding: .utf8)
     }
@@ -351,7 +351,7 @@ extension EyeTracking {
     ///
     /// - Throws: Passes along any failure from `JSONEncoder`.
     ///
-    public func exportAll(with encoding: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys) throws -> Data? {
+    public static func exportAll(with encoding: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys) throws -> Data? {
         guard let sessions = Database.fetchAll() else { return nil }
         let encoder = JSONEncoder()
         encoder.keyEncodingStrategy = encoding
@@ -366,7 +366,7 @@ extension EyeTracking {
     ///
     /// - Throws: Passes along any failure from `JSONEncoder`.
     ///
-    public func exportAllString(with encoding: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys) throws -> String? {
+    public static func exportAllString(with encoding: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys) throws -> String? {
         guard let data = try exportAll(with: encoding) else { return nil }
         return String(data: data, encoding: .utf8)
     }
@@ -383,7 +383,7 @@ extension EyeTracking {
     ///
     /// - Throws: Passes along any failure from `JSONDecoder`.
     ///
-    public func importSession(from data: Data, with decoding: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys) throws {
+    public static func importSession(from data: Data, with decoding: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys) throws {
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = decoding
         let session = try decoder.decode(Session.self, from: data)
@@ -408,7 +408,7 @@ extension EyeTracking {
     ///
     /// - Throws: Passes along any failure from `JSONDecoder`.
     ///
-    public func importSessions(from data: Data, with decoding: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys) throws {
+    public static func importSessions(from data: Data, with decoding: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys) throws {
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = decoding
         let sessions = try decoder.decode([Session].self, from: data)
@@ -432,7 +432,7 @@ extension EyeTracking {
     ///
     /// - Throws: Passes along any failure from `JSONDecoder`.
     ///
-    public func importSession(from jsonString: String, with decoding: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys) throws {
+    public static func importSession(from jsonString: String, with decoding: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys) throws {
         guard let data = jsonString.data(using: .utf8) else {
             assertionFailure("Error converting Session string to Data object. Check string encoding.")
             return
@@ -449,7 +449,7 @@ extension EyeTracking {
     ///
     /// - Throws: Passes along any failure from `JSONDecoder`.
     ///
-    public func importSessions(from jsonString: String, with decoding: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys) throws {
+    public static func importSessions(from jsonString: String, with decoding: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys) throws {
         guard let data = jsonString.data(using: .utf8) else {
             assertionFailure("Error converting Session string to Data object. Check string encoding.")
             return
@@ -458,12 +458,12 @@ extension EyeTracking {
     }
 }
 
-// MARK: - Live Pointer Management
+// MARK: - Live Pointer Visualization
 
 extension EyeTracking {
     /// Call this function to display a live view of the user's gaze point.
     public func showPointer() {
-        window.addSubview(pointer)
+        EyeTracking.window.addSubview(pointer)
     }
 
     /// Call this function to hide the live view of the user's gaze point.
@@ -476,6 +476,8 @@ extension EyeTracking {
         guard let orientation = UIApplication.shared.windows.first?.windowScene?.interfaceOrientation else { return }
         let size = UIScreen.main.bounds.size
 
+        // These adjustments are manual, based on testing.
+        // This could be adjusted during a configuration process of some kind.
         switch orientation {
         case .landscapeRight:
             smoothX.update(with: size.width - 10 - point.x)
@@ -518,5 +520,77 @@ extension EyeTracking {
             width: pointer.frame.width,
             height: pointer.frame.height
         )
+    }
+}
+
+// MARK: - Scanpath Visualization
+
+extension EyeTracking {
+    ///
+    /// Draws a line on screen that follows the gaze location for a given sessionID
+    ///
+    /// - parameter sessionID: Identifier for the `Session` you wish to display on screen
+    /// - parameter color: A `UIColor` value that determines the color of the display path. Defaults to `.blue`
+    /// - parameter animated: Boolean value determining whether or not to animate the scanpath. Optionally set a duration below.
+    /// - parameter duration: Animation duration. Defaults to the duration at which the data was collected.
+    ///
+    public static func displayScanpath(for sessionID: String, color: UIColor = .blue, animated: Bool, duration: Double? = nil) {
+        guard let session = Database.fetch(sessionID) else { return }
+        guard let firstLocation = session.scanPath.first else { return }
+
+        let size = UIScreen.main.bounds.size
+        let view = UIView(frame: window.frame)
+        view.backgroundColor = .clear
+        window.addSubview(view)
+
+        var filterX = LowPassFilter(value: firstLocation.x, filterValue: 0.85)
+        var filterY = LowPassFilter(value: firstLocation.y, filterValue: 0.85)
+
+        let path = UIBezierPath()
+        path.move(to: CGPoint(x: filterX.value, y: filterY.value))
+
+        // This uses the same manual adjustments as `updatePointer`. See its comment.
+        for gaze in session.scanPath {
+            switch UIInterfaceOrientation(rawValue: gaze.orientation) {
+            case .landscapeRight:
+                filterX.update(with: size.width - 10 - gaze.x)
+                filterY.update(with: size.height - 10 - gaze.y)
+            case .landscapeLeft:
+                filterX.update(with: size.width - 20 - gaze.x)
+                filterY.update(with: size.height - 20 - gaze.y)
+            case .portrait:
+                filterX.update(with: size.width - gaze.x)
+                filterY.update(with: size.height - gaze.y)
+            case .portraitUpsideDown:
+                filterX.update(with: size.width - gaze.x)
+                filterY.update(with: size.height - gaze.y)
+            default:
+                assertionFailure("Unknown Orientation")
+                return
+            }
+
+            path.addLine(to: CGPoint(x: filterX.value, y: filterY.value))
+        }
+
+        let shapeLayer = CAShapeLayer()
+        shapeLayer.path = path.cgPath
+        shapeLayer.strokeColor = color.cgColor
+        shapeLayer.lineJoin = .round
+        shapeLayer.lineCap = .round
+        shapeLayer.lineWidth = 5.0
+        view.layer.addSublayer(shapeLayer)
+
+        guard animated else { return }
+
+        let beginTime = Date(timeIntervalSince1970: session.beginTime)
+        let endTime = Date(timeIntervalSince1970: session.endTime ?? session.beginTime)
+        let animationDuration = duration ?? beginTime.distance(to: endTime)
+
+        let strokeAnimation = CABasicAnimation(keyPath: "strokeEnd")
+        strokeAnimation.duration = animationDuration
+        strokeAnimation.fromValue = 0.0
+        strokeAnimation.toValue = 1.0
+
+        shapeLayer.add(strokeAnimation, forKey: "strokeAnimation")
     }
 }

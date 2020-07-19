@@ -10,8 +10,8 @@ public struct BlendShape: Codable {
     /// its `rawValue`. See Apple's documentation for more information.
     public let blendShapeLocation: String
 
-    /// An `Int` representing the rawValue of `UIDeviceOrientation`.
-    private(set) public var orientation = UIDevice.current.orientation.rawValue
+    /// An `Int` representing the rawValue of `UIInterfaceOrientation`.
+    private(set) public var orientation = UIApplication.shared.windows.first?.windowScene?.interfaceOrientation.rawValue ?? 0
 
     /// A UNIX timestamp for when this data point was collected.
     public let timestamp: TimeInterval
