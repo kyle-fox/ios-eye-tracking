@@ -9,6 +9,7 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         eyeTracking.startSession()
+        eyeTracking.loggingEnabled = true
         sessionID = eyeTracking.currentSession?.id
     }
 
@@ -16,7 +17,7 @@ class ViewController: UIViewController {
         super.viewDidAppear(animated)
         eyeTracking.showPointer()
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
             self.eyeTracking.endSession()
             EyeTracking.displayScanpath(for: self.sessionID ?? "", animated: true)
         }
