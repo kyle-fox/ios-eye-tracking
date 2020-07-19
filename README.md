@@ -158,3 +158,11 @@ Similarly, you may remove the display at any time:
 eyeTracking.hidePointer()
 ```
 
+#### Scanpath Playback
+
+`EyeTracking` supports the ability to playback the scanpath, or the path the user's eyes followed during a `Session`. You may set the color of the path that is drawn onscreen and choose whether or not to animate the path. By default, the duration of its animation is the duration of the `Session` itself, so this will serve as a playback of the `Session` as it happened, but you may optionally provide your own duration. You may display this visualization at any time, given you have a `Session`'s unique identifier, like so:
+
+```swift
+EyeTracking.displayScanpath(for: "8136AD7E-7262-4F07-A554-2605506B985D", animated: true)
+```
+

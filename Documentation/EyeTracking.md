@@ -107,15 +107,6 @@ like any other `UIView`.
 
 ## Methods
 
-### `didReceiveMemoryWarning()`
-
-Handle a memory warning to prevent data loss. This will end the current session
-immediately, saving all its data to disk.
-
-``` swift
-@objc func didReceiveMemoryWarning()
-```
-
 ### `startSession()`
 
 Start an eye tracking `Session`.
@@ -148,7 +139,7 @@ Returns a string representation as reported by the given ARFrame's camera, if it
 other than `.normal`. Note: If the state is `.normal`, this will return `nil`.
 
 ``` swift
-func trackingStateString(for frame: ARFrame) -> String?
+static func trackingStateString(for frame: ARFrame) -> String?
 ```
 
 Mappings to `ARCamera.TrackingState`:
@@ -173,7 +164,7 @@ Exports a `Session` for the given `sessionID` on this device to a `Data` object.
 This includes both what is stored in memory and what is stored on disk.
 
 ``` swift
-public func export(sessionID: String, with encoding: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys) throws -> Data?
+public static func export(sessionID: String, with encoding: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys) throws -> Data?
 ```
 
 #### Parameters
@@ -190,7 +181,7 @@ Exports a `Session` for the given `sessionID` on this device to a `String` in js
 This includes both what is stored in memory and what is stored on disk.
 
 ``` swift
-public func exportString(sessionID: String, with encoding: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys) throws -> String?
+public static func exportString(sessionID: String, with encoding: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys) throws -> String?
 ```
 
 #### Parameters
@@ -207,7 +198,7 @@ Exports all sessions on this device to a `Data` object.
 This includes both what is stored in memory and what is stored on disk.
 
 ``` swift
-public func exportAll(with encoding: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys) throws -> Data?
+public static func exportAll(with encoding: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys) throws -> Data?
 ```
 
 #### Parameters
@@ -224,7 +215,7 @@ Exports all sessions on this device to a `String` in json format.
 This includes both what is stored in memory and what is stored on disk.
 
 ``` swift
-public func exportAllString(with encoding: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys) throws -> String?
+public static func exportAllString(with encoding: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys) throws -> String?
 ```
 
 #### Parameters
@@ -241,7 +232,7 @@ Import a `Session` from a `Data` object. This can be useful if using an API to p
 a `Session` with `URLSession`.
 
 ``` swift
-public func importSession(from data: Data, with decoding: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys) throws
+public static func importSession(from data: Data, with decoding: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys) throws
 ```
 
 #### Parameters
@@ -258,7 +249,7 @@ Import an array of `Session`s from a `Data` object. This can be useful if using 
 to pull `Session`s with `URLSession`.
 
 ``` swift
-public func importSessions(from data: Data, with decoding: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys) throws
+public static func importSessions(from data: Data, with decoding: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys) throws
 ```
 
 #### Parameters
@@ -275,7 +266,7 @@ Import a `Session` from a `String`, which is expected to be in JSON format.
 Use this to re-import any single session exported with `exportSession`.
 
 ``` swift
-public func importSession(from jsonString: String, with decoding: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys) throws
+public static func importSession(from jsonString: String, with decoding: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys) throws
 ```
 
 #### Parameters
@@ -292,7 +283,7 @@ Import an array of `Session`s from a `String`, which is expected to be in JSON f
 Use this to re-import any exported list of sessions exported with `exportSessions`.
 
 ``` swift
-public func importSessions(from jsonString: String, with decoding: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys) throws
+public static func importSessions(from jsonString: String, with decoding: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys) throws
 ```
 
 #### Parameters
@@ -326,3 +317,18 @@ Update the live pointer's position to a given point. This location will be smoot
 ``` swift
 func updatePointer(with point: CGPoint)
 ```
+
+### `displayScanpath(for:color:animated:duration:)`
+
+Draws a line on screen that follows the gaze location for a given sessionID
+
+``` swift
+public static func displayScanpath(for sessionID: String, color: UIColor = .blue, animated: Bool, duration: Double? = nil)
+```
+
+#### Parameters
+
+  - sessionID: - sessionID: Identifier for the `Session` you wish to display on screen
+  - color: - color: A `UIColor` value that determines the color of the display path. Defaults to `.blue`
+  - animated: - animated: Boolean value determining whether or not to animate the scanpath. Optionally set a duration below.
+  - duration: - duration: Animation duration. Defaults to the duration at which the data was collected.

@@ -15,7 +15,7 @@ public struct Gaze: Codable
 
 ### `orientation`
 
-An `Int` representing the rawValue of `UIDeviceOrientation`.
+An `Int` representing the rawValue of `UIInterfaceOrientation`.
 
 ``` swift
 var orientation
