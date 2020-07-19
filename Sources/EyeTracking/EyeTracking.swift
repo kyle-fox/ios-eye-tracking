@@ -383,8 +383,10 @@ extension EyeTracking {
     ///
     /// - Throws: Passes along any failure from `JSONDecoder`.
     ///
-    public func importSession(from data: Data) throws {
-        let session = try JSONDecoder().decode(Session.self, from: data)
+    public func importSession(from data: Data, with decoding: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys) throws {
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = decoding
+        let session = try decoder.decode(Session.self, from: data)
 
         do {
             try Database.write(session)
@@ -406,8 +408,10 @@ extension EyeTracking {
     ///
     /// - Throws: Passes along any failure from `JSONDecoder`.
     ///
-    public func importSessions(from data: Data) throws {
-        let sessions = try JSONDecoder().decode([Session].self, from: data)
+    public func importSessions(from data: Data, with decoding: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys) throws {
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = decoding
+        let sessions = try decoder.decode([Session].self, from: data)
         do {
             try Database.write(sessions)
         } catch {
@@ -428,13 +432,13 @@ extension EyeTracking {
     ///
     /// - Throws: Passes along any failure from `JSONDecoder`.
     ///
-    public func importSession(from jsonString: String) throws {
+    public func importSession(from jsonString: String, with decoding: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys) throws {
         guard let data = jsonString.data(using: .utf8) else {
             assertionFailure("Error converting Session string to Data object. Check string encoding.")
             return
         }
 
-        try importSession(from: data)
+        try importSession(from: data, with: decoding)
     }
 
     ///
@@ -445,12 +449,12 @@ extension EyeTracking {
     ///
     /// - Throws: Passes along any failure from `JSONDecoder`.
     ///
-    public func importSessions(from jsonString: String) throws {
+    public func importSessions(from jsonString: String, with decoding: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys) throws {
         guard let data = jsonString.data(using: .utf8) else {
             assertionFailure("Error converting Session string to Data object. Check string encoding.")
             return
         }
-        try importSessions(from: data)
+        try importSessions(from: data, with: decoding)
     }
 }
 
