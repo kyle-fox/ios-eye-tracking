@@ -73,31 +73,7 @@ public class EyeTracking: NSObject {
     ///
     public required init(configuration: Configuration) {
         self.configuration = configuration
-
         super.init()
-
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(didReceiveMemoryWarning),
-            name: UIApplication.didReceiveMemoryWarningNotification,
-            object: nil
-        )
-    }
-
-    ///
-    /// Handle a memory warning to prevent data loss. This will end the current session
-    /// immediately, saving all its data to disk.
-    ///
-    @objc func didReceiveMemoryWarning() {
-        os_log(
-            "%{public}@",
-            log: Log.general,
-            type: .fault,
-            "⛔️ Memory Warning Received. Ending current EyeTracking Session and saving to disk."
-        )
-
-        guard currentSession != nil else { return }
-        endSession()
     }
 }
 

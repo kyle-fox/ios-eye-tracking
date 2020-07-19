@@ -80,7 +80,7 @@ Now that you have the class configured, you are free to start recording data at 
 eyeTracking.startSession()
 ```
 
-This will begin a session and start streaming all data from `ARKit` into a `Session` object. Each `Session` will have a UUID, the `appID` provided at initialization, a UNIX timestamp for the beginning of the session, and device information, including model, screen size, OS name, and OS version. By default, the data streams at 60 fps, so be sure to test your app for memory warnings. If `EyeTracking` receives a memory warning from the system during a `Session`, it will end the session and save its data to disk to prevent data loss.
+This will begin a session and start streaming all data from `ARKit` into a `Session` object. Each `Session` will have a UUID, the `appID` provided at initialization, a UNIX timestamp for the beginning of the session, and device information, including model, screen size, OS name, and OS version. By default, the data streams at 60 fps, so be sure to test your app for memory use, as the size of this data can grow quickly, depending on how many `ARFaceAnchor.BlendShapeLocation`s are configured.
 
 _Note: This package only supports running 1 `Session` at a time._
 
