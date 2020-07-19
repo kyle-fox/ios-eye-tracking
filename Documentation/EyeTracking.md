@@ -79,18 +79,12 @@ let timeOffset: TimeInterval
 var window: UIWindow
 ```
 
-### `smoothX`
+### `pointerFilter`
 
 These values are used by the live pointer for smooth display onscreen.
 
 ``` swift
-var smoothX
-```
-
-### `smoothY`
-
-``` swift
-var smoothY
+var pointerFilter: (x: LowPassFilter, y: LowPassFilter)?
 ```
 
 ### `pointer`
