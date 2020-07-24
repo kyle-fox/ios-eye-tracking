@@ -20,7 +20,8 @@ EyeTracking is a Swift Package that makes it easy to use `ARKit`'s eye and facia
     - [Exporting data](#exporting-data)
     - [Importing data](#importing-data)
     - [Deleting data](#deleting-data)
-    - [Logging](#logging)
+    - [Example JSON Data](#example-json-data)
+    - [Logging](#logExample JSON Dataging)
     - [Visualizations](#visualizations)
 
 ## Features
@@ -144,6 +145,78 @@ try? eyeTracking.deleteAll()
 
 // Delete the entire database and everything in it.
 try? eyeTracking.deleteDatabase()
+```
+
+### Example JSON Data
+
+To get an idea of the data structure, below is a truncated example of the JSON data output. For an example of full data output, see [example_json_output.json](example_json_output.json).
+
+```json
+{
+  "beginTime": 1595626843.445204,
+  "id": "3BE54760-F1E8-4799-A3CB-78806270E72A",
+  "appID": "ios-eye-tracking-example",
+  "endTime": 1595626853.5600219,
+  "scanPath": [
+    {
+      "y": 297.72345417737961,
+      "timestamp": 1595626844.0514789,
+      "x": 479.91125732660294,
+      "orientation": 3
+    },
+    {
+      "y": 287.79990407824516,
+      "timestamp": 1595626844.068157,
+      "x": 484.62997680902481,
+      "orientation": 3
+    },
+    .
+    .
+    .
+  ],
+  "blendShapes": {
+    "eyeBlink_L": [
+      {
+        "blendShapeLocation": "eyeBlink_L",
+        "value": 0,
+        "timestamp": 1595626844.0514789,
+        "orientation": 3
+      },
+      {
+        "blendShapeLocation": "eyeBlink_L",
+        "value": 0,
+        "timestamp": 1595626844.068157,
+        "orientation": 3
+      },
+      .
+      .
+      .
+    ],
+    "eyeBlink_R": [
+      {
+        "blendShapeLocation": "eyeBlink_R",
+        "value": 0,
+        "timestamp": 1595626844.0514789,
+        "orientation": 3
+      },
+      {
+        "blendShapeLocation": "eyeBlink_R",
+        "value": 0,
+        "timestamp": 1595626844.068157,
+        "orientation": 3
+      },
+      .
+      .
+      .
+    ]
+  },
+  "deviceInfo": {
+    "systemVersion": "13.5.1",
+    "systemName": "iOS",
+    "model": "iPad8,1",
+    "screenSize": [834, 1194]
+  }
+}
 ```
 
 ### Logging
