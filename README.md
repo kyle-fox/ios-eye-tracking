@@ -19,6 +19,7 @@ EyeTracking is a Swift Package that makes it easy to use `ARKit`'s eye and facia
     - [Ending a Session](#ending-a-session)
     - [Exporting data](#exporting-data)
     - [Importing data](#importing-data)
+    - [Deleting data](#deleting-data)
     - [Logging](#logging)
     - [Visualizations](#visualizations)
 
@@ -128,6 +129,21 @@ try? eyeTracking.importSessions(from: data, with: .convertFromSnakeCase)
 
 // Imports an array of `Session`s from a JSON `String`
 try? eyeTracking.importSessions(from: jsonString)
+```
+
+### Deleting data
+
+Deleting data is straightforward and offers a few options:
+
+```swift
+// Deletes a given `Session` object from the database.
+try? eyeTracking.delete(session)
+
+// Delete all `Session` objects in the database.
+try? eyeTracking.deleteAll()
+
+// Delete the entire database and everything in it.
+try? eyeTracking.deleteDatabase()
 ```
 
 ### Logging

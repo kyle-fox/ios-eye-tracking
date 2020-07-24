@@ -288,6 +288,47 @@ public static func importSessions(from jsonString: String, with decoding: JSONDe
 
 Passes along any failure from `JSONDecoder`.
 
+### `delete(_:)`
+
+Delete a given `Session` from the database.
+
+``` swift
+public static func delete(_ session: Session) throws
+```
+
+#### Parameters
+
+  - session: - session: The `Session` object you wish to delete.
+
+#### Throws
+
+Passes through any throw from the database.
+
+### `deleteAll()`
+
+Deletes all `Session` objects from the database.
+Does *not* delete the database itself.
+
+``` swift
+public static func deleteAll() throws
+```
+
+#### Throws
+
+Passes through any throw from the database.
+
+### `deleteDatabase()`
+
+Delete the database and everything in it.
+
+``` swift
+static func deleteDatabase() throws
+```
+
+#### Throws
+
+Passes through any throw from the database.
+
 ### `showPointer()`
 
 Call this function to display a live view of the user's gaze point.

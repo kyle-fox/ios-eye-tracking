@@ -434,6 +434,40 @@ extension EyeTracking {
     }
 }
 
+// MARK: - Deleting Data
+
+extension EyeTracking {
+    ///
+    /// Delete a given `Session` from the database.
+    ///
+    /// - parameter session: The `Session` object you wish to delete.
+    ///
+    /// - Throws: Passes through any throw from the database.
+    ///
+    public static func delete(_ session: Session) throws {
+        try Database.delete(session)
+    }
+
+    ///
+    /// Deletes all `Session` objects from the database.
+    /// Does _not_ delete the database itself.
+    ///
+    /// - Throws: Passes through any throw from the database.
+    ///
+    public static func deleteAll() throws {
+        try Database.deleteAll()
+    }
+
+    ///
+    /// Delete the database and everything in it.
+    ///
+    /// - Throws: Passes through any throw from the database.
+    ///
+    static func deleteDatabase() throws {
+        try Database.deleteDatabase()
+    }
+}
+
 // MARK: - Live Pointer Visualization
 
 extension EyeTracking {
