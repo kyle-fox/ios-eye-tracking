@@ -598,6 +598,7 @@ extension EyeTracking {
         let shapeLayer = CAShapeLayer()
         shapeLayer.path = path.cgPath
         shapeLayer.strokeColor = color.cgColor
+        shapeLayer.fillColor = UIColor.clear.cgColor
         shapeLayer.lineJoin = .round
         shapeLayer.lineCap = .round
         shapeLayer.lineWidth = 5.0
