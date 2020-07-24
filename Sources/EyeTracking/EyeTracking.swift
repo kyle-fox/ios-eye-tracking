@@ -491,7 +491,7 @@ extension EyeTracking {
         // This could be adjusted during a configuration process of some kind.
         switch orientation {
         case .landscapeRight, .landscapeLeft:
-            adjusted = (size.width - 20 - point.x, size.height - 20 - point.y)
+            adjusted = (size.width - point.x, size.height - point.y)
         case .portrait, .portraitUpsideDown:
             adjusted = (size.width - point.x, size.height - point.y)
         default:
@@ -562,7 +562,7 @@ extension EyeTracking {
 
         switch UIInterfaceOrientation(rawValue: firstLocation.orientation) {
         case .landscapeRight, .landscapeLeft:
-            adjusted = (size.width - 20 - firstLocation.x, size.height - 20 - firstLocation.y)
+            adjusted = (size.width - firstLocation.x, size.height - firstLocation.y)
         case .portrait, .portraitUpsideDown:
             adjusted = (size.width - firstLocation.x, size.height - firstLocation.y)
         default:
@@ -582,8 +582,8 @@ extension EyeTracking {
         for gaze in session.scanPath[1...] {
             switch UIInterfaceOrientation(rawValue: gaze.orientation) {
             case .landscapeRight, .landscapeLeft:
-                filter.x.update(with: size.width - 20 - gaze.x)
-                filter.y.update(with: size.height - 20 - gaze.y)
+                filter.x.update(with: size.width - gaze.x)
+                filter.y.update(with: size.height - gaze.y)
             case .portrait, .portraitUpsideDown:
                 filter.x.update(with: size.width - gaze.x)
                 filter.y.update(with: size.height - gaze.y)
