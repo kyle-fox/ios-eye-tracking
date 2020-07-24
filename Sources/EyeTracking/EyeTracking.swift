@@ -25,6 +25,14 @@ public class EyeTracking: NSObject {
     /// method for accessing all facial tracking features.
     let arSession = ARSession()
 
+    /// A view that contains any output for visualizations.
+    lazy var visualizationView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .clear
+        view.isUserInteractionEnabled = false
+        return view
+    }()
+
     /// Internal storage for the `Configuration` object. This is created at initialization.
     var configuration: Configuration
 
@@ -538,6 +546,26 @@ extension EyeTracking {
     }
 }
 
+// MARK: - Visualization View Control
+
+extension EyeTracking {
+    /// Internal function to display the visualization view.
+    func showVisualization() {
+        EyeTracking.window.addSubview(visualizationView)
+        visualizationView.translatesAutoresizingMaskIntoConstraints = false
+        visualizationView.leadingAnchor.constraint(equalTo: EyeTracking.window.leadingAnchor).isActive = true
+        visualizationView.trailingAnchor.constraint(equalTo: EyeTracking.window.trailingAnchor).isActive = true
+        visualizationView.topAnchor.constraint(equalTo: EyeTracking.window.topAnchor).isActive = true
+        visualizationView.bottomAnchor.constraint(equalTo: EyeTracking.window.bottomAnchor).isActive = true
+    }
+
+    /// Call this function anytime you want to hide a visualization that is displayed on screen.
+    public func hideVisualization() {
+        visualizationView.removeFromSuperview()
+        visualizationView.layer.sublayers?.forEach { $0.removeFromSuperlayer() }
+    }
+}
+
 // MARK: - Scanpath Visualization
 
 extension EyeTracking {
@@ -549,15 +577,16 @@ extension EyeTracking {
     /// - parameter animated: Boolean value determining whether or not to animate the scanpath. Optionally set a duration below.
     /// - parameter duration: Animation duration. Defaults to the duration at which the data was collected.
     ///
-    public static func displayScanpath(for sessionID: String, color: UIColor = .blue, animated: Bool, duration: Double? = nil) {
+    public func displayScanpath(for sessionID: String, color: UIColor = .blue, animated: Bool, duration: Double? = nil) {
+        // Clear the visualization view
+        hideVisualization()
+
         guard let session = Database.fetch(sessionID) else { return }
         guard let firstLocation = session.scanPath.first else { return }
 
-        let size = UIScreen.main.bounds.size
-        let view = UIView(frame: window.frame)
-        view.backgroundColor = .clear
-        window.addSubview(view)
+        showVisualization()
 
+        let size = UIScreen.main.bounds.size
         var adjusted: (x: CGFloat, y: CGFloat)
 
         switch UIInterfaceOrientation(rawValue: firstLocation.orientation) {
@@ -602,7 +631,7 @@ extension EyeTracking {
         shapeLayer.lineJoin = .round
         shapeLayer.lineCap = .round
         shapeLayer.lineWidth = 5.0
-        view.layer.addSublayer(shapeLayer)
+        visualizationView.layer.addSublayer(shapeLayer)
 
         guard animated else { return }
 

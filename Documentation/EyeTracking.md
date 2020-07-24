@@ -57,6 +57,14 @@ method for accessing all facial tracking features.
 let arSession
 ```
 
+### `visualizationView`
+
+A view that contains any output for visualizations.
+
+``` swift
+var visualizationView: UIView
+```
+
 ### `configuration`
 
 Internal storage for the `Configuration` object. This is created at initialization.
@@ -353,12 +361,28 @@ Update the live pointer's position to a given point. This location will be smoot
 func updatePointer(with point: CGPoint)
 ```
 
+### `showVisualization()`
+
+Internal function to display the visualization view.
+
+``` swift
+func showVisualization()
+```
+
+### `hideVisualization()`
+
+Call this function anytime you want to hide a visualization that is displayed on screen.
+
+``` swift
+public func hideVisualization()
+```
+
 ### `displayScanpath(for:color:animated:duration:)`
 
 Draws a line on screen that follows the gaze location for a given sessionID
 
 ``` swift
-public static func displayScanpath(for sessionID: String, color: UIColor = .blue, animated: Bool, duration: Double? = nil)
+public func displayScanpath(for sessionID: String, color: UIColor = .blue, animated: Bool, duration: Double? = nil)
 ```
 
 #### Parameters
