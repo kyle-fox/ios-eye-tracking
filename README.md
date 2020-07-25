@@ -21,7 +21,7 @@ EyeTracking is a Swift Package that makes it easy to use `ARKit`'s eye and facia
     - [Importing data](#importing-data)
     - [Deleting data](#deleting-data)
     - [Example JSON Data](#example-json-data)
-    - [Logging](#logExample JSON Dataging)
+    - [Logging](#logging)
     - [Visualizations](#visualizations)
 
 ## Features
@@ -170,9 +170,7 @@ To get an idea of the data structure, below is a truncated example of the JSON d
       "x": 484.62997680902481,
       "orientation": 3
     },
-    .
-    .
-    .
+    ...
   ],
   "blendShapes": {
     "eyeBlink_L": [
@@ -188,9 +186,7 @@ To get an idea of the data structure, below is a truncated example of the JSON d
         "timestamp": 1595626844.068157,
         "orientation": 3
       },
-      .
-      .
-      .
+      ...
     ],
     "eyeBlink_R": [
       {
@@ -205,9 +201,7 @@ To get an idea of the data structure, below is a truncated example of the JSON d
         "timestamp": 1595626844.068157,
         "orientation": 3
       },
-      .
-      .
-      .
+      ...
     ]
   },
   "deviceInfo": {
