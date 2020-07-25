@@ -18,11 +18,11 @@ class ViewController: UIViewController {
     }
 
     func startNewSession() {
-        // Only run 1 session's data at a time
-        try? EyeTracking.deleteAll()
-
         if eyeTracking.currentSession != nil {
+            // Only keep 1 current session data
+            let session = self.eyeTracking.currentSession
             eyeTracking.endSession()
+            try? EyeTracking.delete(session!)
         }
 
         eyeTracking.startSession()
@@ -40,10 +40,12 @@ class ViewController: UIViewController {
         sessionTimer?.invalidate()
         sessionTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: false) { _ in
             self.eyeTracking.loggingEnabled = false
+            let session = self.eyeTracking.currentSession
             self.eyeTracking.endSession()
             guard let jsonData = try? EyeTracking.exportAll() else { return }
             let jsonDict = try? JSONSerialization.jsonObject(with: jsonData, options: .allowFragments)
             print(jsonDict ?? "")
+            try? EyeTracking.delete(session!)
             self.eyeTracking.startSession()
         }
     }
@@ -53,8 +55,10 @@ class ViewController: UIViewController {
 
         sessionTimer?.invalidate()
         sessionTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: false) { _ in
+            let session = self.eyeTracking.currentSession
             self.eyeTracking.endSession()
             self.eyeTracking.displayScanpath(for: self.sessionID ?? "", animated: true)
+            try? EyeTracking.delete(session!)
         }
     }
 
